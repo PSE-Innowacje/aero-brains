@@ -1,0 +1,2316 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "AERO API",
+        "description": "API do ewidencji operacji lotniczych i zlecen na lot helikopterem",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Generated server url"
+        }
+    ],
+    "security": [
+        {
+            "Bearer": []
+        }
+    ],
+    "paths": {
+        "/api/users/{id}": {
+            "get": {
+                "tags": [
+                    "user-controller"
+                ],
+                "operationId": "findById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "user-controller"
+                ],
+                "operationId": "update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUserRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing-sites/{id}": {
+            "get": {
+                "tags": [
+                    "landing-site-controller"
+                ],
+                "operationId": "findById_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LandingSiteResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "landing-site-controller"
+                ],
+                "operationId": "update_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateLandingSiteRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LandingSiteResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/helicopters/{id}": {
+            "get": {
+                "tags": [
+                    "helicopter-controller"
+                ],
+                "operationId": "findById_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HelicopterResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "helicopter-controller"
+                ],
+                "operationId": "update_2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateHelicopterRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HelicopterResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-orders/{id}": {
+            "get": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "findById_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FlightOrderResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "update_3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateFlightOrderRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FlightOrderResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-operations/{id}": {
+            "get": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "findById_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FlightOperationResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "update_4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateFlightOperationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FlightOperationResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/crew-members/{id}": {
+            "get": {
+                "tags": [
+                    "crew-member-controller"
+                ],
+                "operationId": "findById_5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CrewMemberResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "crew-member-controller"
+                ],
+                "operationId": "update_5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateCrewMemberRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CrewMemberResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "user-controller"
+                ],
+                "operationId": "findAll",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UserResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "user-controller"
+                ],
+                "operationId": "create",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateUserRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/landing-sites": {
+            "get": {
+                "tags": [
+                    "landing-site-controller"
+                ],
+                "operationId": "findAll_1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/LandingSiteResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "landing-site-controller"
+                ],
+                "operationId": "create_1",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateLandingSiteRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LandingSiteResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/helicopters": {
+            "get": {
+                "tags": [
+                    "helicopter-controller"
+                ],
+                "operationId": "findAll_2",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/HelicopterResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "helicopter-controller"
+                ],
+                "operationId": "create_2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateHelicopterRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HelicopterResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-orders": {
+            "get": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "findAll_3",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/FlightOrderListItem"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "create_3",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateFlightOrderRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FlightOrderResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-orders/{id}/submit": {
+            "post": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "submit",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-orders/{id}/settle-partial": {
+            "post": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "settlePartial",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-orders/{id}/settle-not-completed": {
+            "post": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "settleNotCompleted",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-orders/{id}/settle-complete": {
+            "post": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "settleComplete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-orders/{id}/reject": {
+            "post": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "reject",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-orders/{id}/accept": {
+            "post": {
+                "tags": [
+                    "flight-order-controller"
+                ],
+                "operationId": "accept",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-operations": {
+            "get": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "findAll_4",
+                "parameters": [
+                    {
+                        "name": "statuses",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "INTRODUCED",
+                                    "REJECTED",
+                                    "CONFIRMED",
+                                    "SCHEDULED",
+                                    "PARTIALLY_COMPLETED",
+                                    "COMPLETED",
+                                    "CANCELLED"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/FlightOperationListItem"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "create_4",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateFlightOperationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FlightOperationResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-operations/{id}/reject": {
+            "post": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "reject_1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-operations/{id}/confirm": {
+            "post": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "confirm",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangeStatusRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/flight-operations/{id}/comments": {
+            "post": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "addComment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AddCommentRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FlightOperationResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-operations/{id}/cancel": {
+            "post": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "cancel",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/crew-members": {
+            "get": {
+                "tags": [
+                    "crew-member-controller"
+                ],
+                "operationId": "findAll_5",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CrewMemberResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "crew-member-controller"
+                ],
+                "operationId": "create_5",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCrewMemberRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CrewMemberResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "auth-controller"
+                ],
+                "operationId": "login",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-operations/{id}/kml": {
+            "get": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "getKml",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "byte"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/flight-operations/{id}/geojson": {
+            "get": {
+                "tags": [
+                    "flight-operation-controller"
+                ],
+                "operationId": "getGeoJson",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "UpdateUserRequest": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 8
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "ADMINISTRATOR",
+                            "PLANNER",
+                            "SUPERVISOR",
+                            "PILOT"
+                        ]
+                    }
+                },
+                "required": [
+                    "email",
+                    "firstName",
+                    "lastName",
+                    "role"
+                ]
+            },
+            "UserResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "ADMINISTRATOR",
+                            "PLANNER",
+                            "SUPERVISOR",
+                            "PILOT"
+                        ]
+                    }
+                },
+                "required": [
+                    "email",
+                    "firstName",
+                    "id",
+                    "lastName",
+                    "role"
+                ]
+            },
+            "UpdateLandingSiteRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 0
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "latitude",
+                    "longitude",
+                    "name"
+                ]
+            },
+            "LandingSiteResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "id",
+                    "latitude",
+                    "longitude",
+                    "name"
+                ]
+            },
+            "UpdateHelicopterRequest": {
+                "type": "object",
+                "properties": {
+                    "registrationNumber": {
+                        "type": "string",
+                        "maxLength": 30,
+                        "minLength": 0
+                    },
+                    "helicopterType": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "maxCrewCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 10,
+                        "minimum": 1
+                    },
+                    "maxCrewWeight": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 1000,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE"
+                        ]
+                    },
+                    "inspectionExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rangeKm": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 1000,
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "helicopterType",
+                    "maxCrewCount",
+                    "maxCrewWeight",
+                    "rangeKm",
+                    "registrationNumber",
+                    "status"
+                ]
+            },
+            "HelicopterResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "registrationNumber": {
+                        "type": "string"
+                    },
+                    "helicopterType": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "maxCrewCount": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "maxCrewWeight": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE"
+                        ]
+                    },
+                    "inspectionExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rangeKm": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "required": [
+                    "helicopterType",
+                    "id",
+                    "maxCrewCount",
+                    "maxCrewWeight",
+                    "rangeKm",
+                    "registrationNumber",
+                    "status"
+                ]
+            },
+            "UpdateFlightOrderRequest": {
+                "type": "object",
+                "properties": {
+                    "plannedStartTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "plannedEndTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "helicopterId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "crewMemberIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "uniqueItems": true
+                    },
+                    "departureSiteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "arrivalSiteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "operationIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "uniqueItems": true
+                    },
+                    "estimatedRouteLengthKm": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "actualStartTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "actualEndTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "arrivalSiteId",
+                    "crewMemberIds",
+                    "departureSiteId",
+                    "estimatedRouteLengthKm",
+                    "helicopterId",
+                    "operationIds",
+                    "plannedEndTime",
+                    "plannedStartTime"
+                ]
+            },
+            "FlightOrderResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "plannedStartTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "plannedEndTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "pilotId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "INTRODUCED",
+                            "SUBMITTED",
+                            "REJECTED",
+                            "ACCEPTED",
+                            "PARTIALLY_COMPLETED",
+                            "COMPLETED",
+                            "NOT_COMPLETED"
+                        ]
+                    },
+                    "helicopterId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "crewMemberIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "uniqueItems": true
+                    },
+                    "crewWeight": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "departureSiteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "arrivalSiteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "operationIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "uniqueItems": true
+                    },
+                    "estimatedRouteLengthKm": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "actualStartTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "actualEndTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "arrivalSiteId",
+                    "createdAt",
+                    "crewMemberIds",
+                    "crewWeight",
+                    "departureSiteId",
+                    "estimatedRouteLengthKm",
+                    "helicopterId",
+                    "id",
+                    "operationIds",
+                    "pilotId",
+                    "plannedEndTime",
+                    "plannedStartTime",
+                    "status",
+                    "updatedAt"
+                ]
+            },
+            "ActivityTypeEntry": {
+                "type": "object",
+                "properties": {
+                    "activityType": {
+                        "type": "string",
+                        "enum": [
+                            "VISUAL_INSPECTION",
+                            "SCAN_3D",
+                            "FAULT_LOCATION",
+                            "PHOTOS",
+                            "PATROL",
+                            "OTHER"
+                        ]
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 0
+                    }
+                },
+                "required": [
+                    "activityType"
+                ]
+            },
+            "UpdateFlightOperationRequest": {
+                "type": "object",
+                "properties": {
+                    "orderProjectNumber": {
+                        "type": "string",
+                        "maxLength": 30,
+                        "minLength": 0
+                    },
+                    "shortDescription": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "kmlFileName": {
+                        "type": "string"
+                    },
+                    "kmlContent": {
+                        "type": "string"
+                    },
+                    "proposedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "proposedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "activities": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActivityTypeEntry"
+                        }
+                    },
+                    "additionalInfo": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "contactEmails": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "minLength": 0
+                    },
+                    "plannedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "plannedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "postCompletionNotes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    }
+                },
+                "required": [
+                    "activities",
+                    "orderProjectNumber",
+                    "shortDescription"
+                ]
+            },
+            "ChangeLogResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "fieldName": {
+                        "type": "string"
+                    },
+                    "oldValue": {
+                        "type": "string"
+                    },
+                    "newValue": {
+                        "type": "string"
+                    },
+                    "changedByEmail": {
+                        "type": "string"
+                    },
+                    "changedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "changedAt",
+                    "changedByEmail",
+                    "fieldName",
+                    "id"
+                ]
+            },
+            "CommentResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "authorEmail": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "authorEmail",
+                    "content",
+                    "createdAt",
+                    "id"
+                ]
+            },
+            "FlightOperationResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "orderProjectNumber": {
+                        "type": "string"
+                    },
+                    "shortDescription": {
+                        "type": "string"
+                    },
+                    "kmlFileName": {
+                        "type": "string"
+                    },
+                    "geojsonContent": {
+                        "type": "string"
+                    },
+                    "proposedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "proposedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "activities": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActivityTypeEntry"
+                        }
+                    },
+                    "additionalInfo": {
+                        "type": "string"
+                    },
+                    "routeLengthKm": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "plannedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "plannedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "INTRODUCED",
+                            "REJECTED",
+                            "CONFIRMED",
+                            "SCHEDULED",
+                            "PARTIALLY_COMPLETED",
+                            "COMPLETED",
+                            "CANCELLED"
+                        ]
+                    },
+                    "createdByEmail": {
+                        "type": "string"
+                    },
+                    "contactEmails": {
+                        "type": "string"
+                    },
+                    "postCompletionNotes": {
+                        "type": "string"
+                    },
+                    "comments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentResponse"
+                        }
+                    },
+                    "changeLog": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ChangeLogResponse"
+                        }
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "activities",
+                    "changeLog",
+                    "comments",
+                    "createdAt",
+                    "createdByEmail",
+                    "id",
+                    "orderProjectNumber",
+                    "routeLengthKm",
+                    "shortDescription",
+                    "status",
+                    "updatedAt"
+                ]
+            },
+            "UpdateCrewMemberRequest": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 200,
+                        "minimum": 30
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "PILOT",
+                            "OBSERVER"
+                        ]
+                    },
+                    "pilotLicenseNumber": {
+                        "type": "string",
+                        "maxLength": 30,
+                        "minLength": 0
+                    },
+                    "licenseExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "trainingExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "email",
+                    "firstName",
+                    "lastName",
+                    "role",
+                    "trainingExpiryDate",
+                    "weight"
+                ]
+            },
+            "CrewMemberResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "PILOT",
+                            "OBSERVER"
+                        ]
+                    },
+                    "pilotLicenseNumber": {
+                        "type": "string"
+                    },
+                    "licenseExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "trainingExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "email",
+                    "firstName",
+                    "id",
+                    "lastName",
+                    "role",
+                    "trainingExpiryDate",
+                    "weight"
+                ]
+            },
+            "CreateUserRequest": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 8
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "ADMINISTRATOR",
+                            "PLANNER",
+                            "SUPERVISOR",
+                            "PILOT"
+                        ]
+                    }
+                },
+                "required": [
+                    "email",
+                    "firstName",
+                    "lastName",
+                    "password",
+                    "role"
+                ]
+            },
+            "CreateLandingSiteRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 0
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "latitude",
+                    "longitude",
+                    "name"
+                ]
+            },
+            "CreateHelicopterRequest": {
+                "type": "object",
+                "properties": {
+                    "registrationNumber": {
+                        "type": "string",
+                        "maxLength": 30,
+                        "minLength": 0
+                    },
+                    "helicopterType": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "maxCrewCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 10,
+                        "minimum": 1
+                    },
+                    "maxCrewWeight": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 1000,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE"
+                        ]
+                    },
+                    "inspectionExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "rangeKm": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 1000,
+                        "minimum": 1
+                    }
+                },
+                "required": [
+                    "helicopterType",
+                    "maxCrewCount",
+                    "maxCrewWeight",
+                    "rangeKm",
+                    "registrationNumber",
+                    "status"
+                ]
+            },
+            "CreateFlightOrderRequest": {
+                "type": "object",
+                "properties": {
+                    "plannedStartTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "plannedEndTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "helicopterId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "crewMemberIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "uniqueItems": true
+                    },
+                    "departureSiteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "arrivalSiteId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "operationIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int64"
+                        },
+                        "uniqueItems": true
+                    },
+                    "estimatedRouteLengthKm": {
+                        "type": "integer",
+                        "format": "int32"
+                    }
+                },
+                "required": [
+                    "arrivalSiteId",
+                    "crewMemberIds",
+                    "departureSiteId",
+                    "estimatedRouteLengthKm",
+                    "helicopterId",
+                    "operationIds",
+                    "plannedEndTime",
+                    "plannedStartTime"
+                ]
+            },
+            "CreateFlightOperationRequest": {
+                "type": "object",
+                "properties": {
+                    "orderProjectNumber": {
+                        "type": "string",
+                        "maxLength": 30,
+                        "minLength": 0
+                    },
+                    "shortDescription": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "kmlFileName": {
+                        "type": "string"
+                    },
+                    "kmlContent": {
+                        "type": "string"
+                    },
+                    "proposedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "proposedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "activities": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActivityTypeEntry"
+                        }
+                    },
+                    "additionalInfo": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    },
+                    "contactEmails": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "minLength": 0
+                    }
+                },
+                "required": [
+                    "activities",
+                    "orderProjectNumber",
+                    "shortDescription"
+                ]
+            },
+            "ChangeStatusRequest": {
+                "type": "object",
+                "properties": {
+                    "plannedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "plannedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                }
+            },
+            "AddCommentRequest": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 0
+                    }
+                },
+                "required": [
+                    "content"
+                ]
+            },
+            "CreateCrewMemberRequest": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 0
+                    },
+                    "weight": {
+                        "type": "integer",
+                        "format": "int32",
+                        "maximum": 200,
+                        "minimum": 30
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "PILOT",
+                            "OBSERVER"
+                        ]
+                    },
+                    "pilotLicenseNumber": {
+                        "type": "string",
+                        "maxLength": 30,
+                        "minLength": 0
+                    },
+                    "licenseExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "trainingExpiryDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "email",
+                    "firstName",
+                    "lastName",
+                    "role",
+                    "trainingExpiryDate",
+                    "weight"
+                ]
+            },
+            "LoginRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
+                ]
+            },
+            "LoginResponse": {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "email",
+                    "role",
+                    "token"
+                ]
+            },
+            "FlightOrderListItem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "plannedStartTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "helicopterId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "pilotId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "INTRODUCED",
+                            "SUBMITTED",
+                            "REJECTED",
+                            "ACCEPTED",
+                            "PARTIALLY_COMPLETED",
+                            "COMPLETED",
+                            "NOT_COMPLETED"
+                        ]
+                    }
+                },
+                "required": [
+                    "helicopterId",
+                    "id",
+                    "pilotId",
+                    "plannedStartTime",
+                    "status"
+                ]
+            },
+            "FlightOperationListItem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "orderProjectNumber": {
+                        "type": "string"
+                    },
+                    "activities": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ActivityTypeEntry"
+                        }
+                    },
+                    "proposedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "proposedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "plannedDateFrom": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "plannedDateTo": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "INTRODUCED",
+                            "REJECTED",
+                            "CONFIRMED",
+                            "SCHEDULED",
+                            "PARTIALLY_COMPLETED",
+                            "COMPLETED",
+                            "CANCELLED"
+                        ]
+                    }
+                },
+                "required": [
+                    "activities",
+                    "id",
+                    "orderProjectNumber",
+                    "status"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "Bearer": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

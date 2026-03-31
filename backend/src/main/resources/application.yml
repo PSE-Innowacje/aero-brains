@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: aero-brains
+
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521/XEPDB1
+    username: aero
+    password: aero
+    driver-class-name: oracle.jdbc.OracleDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: aero-brains-jwt-secret-key-change-in-production-min-256-bits-long
+    expiration-ms: 86400000

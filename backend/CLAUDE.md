@@ -30,6 +30,7 @@ shared/dto/ — współdzielone DTO między frontem a backendem
 
 ## Kluczowe decyzje
 
+- Architektura DDD (Domain-Driven Design) — podział na bounded contexty, wyraźne oddzielenie warstw (domain, application, infrastructure)
 - Monolit — brak potrzeby mikroserwisów
 - Flyway do migracji bazy (nie Liquibase)
 - Spock Framework do testów integracyjnych (Groovy DSL)
