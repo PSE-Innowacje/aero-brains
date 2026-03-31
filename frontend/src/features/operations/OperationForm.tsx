@@ -109,6 +109,7 @@ const OperationForm: React.FC = () => {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors, isValid },
   } = useForm<OperationFormData>({
     resolver: zodResolver(operationSchema),
@@ -325,12 +326,32 @@ const OperationForm: React.FC = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.activities && (
+                {errors.activities && typeof errors.activities.message === 'string' && (
                   <FormHelperText>{errors.activities.message}</FormHelperText>
                 )}
               </FormControl>
             )}
           />
+
+          {watch('activities')?.some((a) => a.activityType === 'OTHER') && (
+            <Controller
+              name={`activities.${watch('activities').findIndex((a) => a.activityType === 'OTHER')}.description`}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label='Opis dla "Inne" *'
+                  multiline
+                  rows={2}
+                  inputProps={{ maxLength: 200 }}
+                  error={!!errors.activities?.[watch('activities').findIndex((a) => a.activityType === 'OTHER')]?.description}
+                  helperText={errors.activities?.[watch('activities').findIndex((a) => a.activityType === 'OTHER')]?.description?.message}
+                  disabled={isFieldDisabled('activities')}
+                />
+              )}
+            />
+          )}
 
           <Controller
             name="additionalInfo"
