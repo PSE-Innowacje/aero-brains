@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260" fill="none">
+  <rect width="640" height="260" fill="#fce4ec"/>
+  <rect width="640" height="160" fill="#f8bbd0"/>
+  <rect y="200" width="640" height="60" fill="#c8e6c9"/>
+  <rect y="195" width="640" height="10" fill="#a5d6a7"/>
+  <!-- Body -->
+  <ellipse cx="310" cy="140" rx="78" ry="30" fill="#b71c1c"/>
+  <ellipse cx="310" cy="140" rx="73" ry="26" fill="#d32f2f"/>
+  <!-- Cockpit -->
+  <ellipse cx="252" cy="135" rx="30" ry="22" fill="#e57373"/>
+  <ellipse cx="248" cy="132" rx="20" ry="14" fill="#ffcdd2" opacity="0.7"/>
+  <!-- Tail boom -->
+  <rect x="383" y="133" width="125" height="11" rx="5" fill="#b71c1c"/>
+  <!-- Tail rotor -->
+  <ellipse cx="508" cy="126" rx="4" ry="20" fill="#ef9a9a"/>
+  <rect x="504" y="106" width="9" height="40" rx="4" fill="#e57373" opacity="0.6"/>
+  <!-- Tail fin -->
+  <polygon points="493,133 513,112 513,133" fill="#d32f2f"/>
+  <!-- Main rotor -->
+  <rect x="155" y="107" width="310" height="5" rx="2" fill="#ef9a9a" opacity="0.8"/>
+  <circle cx="310" cy="110" r="6" fill="#b71c1c"/>
+  <!-- Skids -->
+  <rect x="268" y="168" width="7" height="28" rx="2" fill="#b71c1c"/>
+  <rect x="352" y="168" width="7" height="28" rx="2" fill="#b71c1c"/>
+  <rect x="255" y="193" width="120" height="5" rx="2" fill="#b71c1c"/>
+  <!-- Stripe -->
+  <rect x="232" y="144" width="156" height="3" rx="1" fill="#fff" opacity="0.4"/>
+  <!-- Label -->
+  <text x="320" y="240" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="bold" fill="#b71c1c">Bell 407GXi</text>
+</svg>

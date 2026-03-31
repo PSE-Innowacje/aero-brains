@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 260" fill="none">
+  <rect width="640" height="260" fill="#e3f2fd"/>
+  <!-- Sky gradient feel -->
+  <rect width="640" height="160" fill="#bbdefb"/>
+  <!-- Ground -->
+  <rect y="200" width="640" height="60" fill="#c8e6c9"/>
+  <rect y="195" width="640" height="10" fill="#a5d6a7"/>
+  <!-- Helicopter body -->
+  <ellipse cx="320" cy="140" rx="80" ry="30" fill="#37474f"/>
+  <ellipse cx="320" cy="140" rx="75" ry="26" fill="#546e7a"/>
+  <!-- Cockpit -->
+  <ellipse cx="265" cy="135" rx="30" ry="22" fill="#78909c"/>
+  <ellipse cx="260" cy="132" rx="20" ry="14" fill="#b3e5fc" opacity="0.7"/>
+  <!-- Tail boom -->
+  <rect x="395" y="132" width="120" height="12" rx="6" fill="#455a64"/>
+  <!-- Tail rotor -->
+  <ellipse cx="515" cy="125" rx="4" ry="20" fill="#90a4ae"/>
+  <rect x="510" y="105" width="10" height="40" rx="5" fill="#78909c" opacity="0.6"/>
+  <!-- Tail fin -->
+  <polygon points="500,132 520,110 520,132" fill="#546e7a"/>
+  <!-- Main rotor -->
+  <rect x="160" y="107" width="320" height="5" rx="2" fill="#90a4ae" opacity="0.8"/>
+  <circle cx="320" cy="110" r="6" fill="#455a64"/>
+  <!-- Skids -->
+  <rect x="270" y="168" width="8" height="30" rx="2" fill="#455a64"/>
+  <rect x="362" y="168" width="8" height="30" rx="2" fill="#455a64"/>
+  <rect x="255" y="195" width="140" height="5" rx="2" fill="#37474f"/>
+  <!-- Label -->
+  <text x="320" y="240" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" font-weight="bold" fill="#37474f">PZL W-3A Sokół</text>
+</svg>
