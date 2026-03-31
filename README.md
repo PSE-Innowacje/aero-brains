@@ -47,6 +47,7 @@ Wsparcie procesu zbierania planowanych operacji oraz bezpośredniego przygotowan
 
 ---
 
+
 ## 6. ✅ Funkcje obowiązkowe
 
 ### 6.1. 🚁 Helikopter

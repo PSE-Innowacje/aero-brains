@@ -16,7 +16,7 @@ class LandingSite(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "landing_site_seq")
     @SequenceGenerator(name = "landing_site_seq", sequenceName = "LANDING_SITES_SEQ", allocationSize = 1)
-    override val id: Long = 0,
+    val id: Long = 0,
 
     @Column(nullable = false, unique = true, length = 200)
     var name: String,
