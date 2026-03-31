@@ -1,3 +1,5 @@
+version: '3.3'
+
 services:
   oracle:
     image: gvenzl/oracle-xe:21-slim-faststart
@@ -14,7 +16,21 @@ services:
       test: ["CMD", "healthcheck.sh"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 10
+
+  backend:
+    build: .
+    container_name: aero-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/XEPDB1
+      SPRING_DATASOURCE_USERNAME: aero
+      SPRING_DATASOURCE_PASSWORD: aero
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      - oracle
+    restart: on-failure
 
 volumes:
   oracle-data:

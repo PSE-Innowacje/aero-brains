@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -58,6 +60,30 @@ class GlobalExceptionHandler {
                 status = 401,
                 error = "Unauthorized",
                 message = ex.message,
+                path = request.requestURI
+            )
+        )
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleMessageNotReadable(ex: HttpMessageNotReadableException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            ErrorResponse(
+                status = 400,
+                error = "Bad Request",
+                message = "Malformed or incomplete request body",
+                path = request.requestURI
+            )
+        )
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDenied(ex: AccessDeniedException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+            ErrorResponse(
+                status = 403,
+                error = "Forbidden",
+                message = "Access denied",
                 path = request.requestURI
             )
         )

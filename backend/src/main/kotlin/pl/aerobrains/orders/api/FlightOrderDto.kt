@@ -3,7 +3,6 @@ package pl.aerobrains.orders.api
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import pl.aerobrains.orders.domain.OrderStatus
-import java.time.Instant
 import java.time.LocalDateTime
 
 data class CreateFlightOrderRequest(
@@ -74,8 +73,8 @@ data class FlightOrderResponse(
     val estimatedRouteLengthKm: Int,
     val actualStartTime: LocalDateTime?,
     val actualEndTime: LocalDateTime?,
-    val createdAt: Instant,
-    val updatedAt: Instant
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 )
 
 data class FlightOrderListItem(
