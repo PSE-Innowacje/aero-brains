@@ -66,3 +66,17 @@ INSERT INTO landing_sites (name, latitude, longitude) VALUES
 
 INSERT INTO landing_sites (name, latitude, longitude) VALUES
     ('Lądowisko Gdańsk-Rębiechowo', 54.3776, 18.4662);
+
+-- =====================
+-- Reset sequences to avoid ID collisions with Hibernate
+-- =====================
+ALTER SEQUENCE users_seq RESTART START WITH 100;
+ALTER SEQUENCE helicopters_seq RESTART START WITH 100;
+ALTER SEQUENCE crew_members_seq RESTART START WITH 100;
+ALTER SEQUENCE landing_sites_seq RESTART START WITH 100;
+ALTER SEQUENCE flight_operations_seq RESTART START WITH 100;
+ALTER SEQUENCE flight_orders_seq RESTART START WITH 100;
+ALTER SEQUENCE operation_activities_seq RESTART START WITH 100;
+ALTER SEQUENCE operation_comments_seq RESTART START WITH 100;
+ALTER SEQUENCE operation_change_log_seq RESTART START WITH 100;
+ALTER SEQUENCE default_seq RESTART START WITH 100;

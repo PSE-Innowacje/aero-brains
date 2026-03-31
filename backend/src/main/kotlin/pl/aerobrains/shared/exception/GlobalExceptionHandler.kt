@@ -2,6 +2,7 @@ package pl.aerobrains.shared.exception
 
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -60,6 +61,18 @@ class GlobalExceptionHandler {
                 status = 401,
                 error = "Unauthorized",
                 message = ex.message,
+                path = request.requestURI
+            )
+        )
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException::class)
+    fun handleDataIntegrity(ex: DataIntegrityViolationException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+            ErrorResponse(
+                status = 409,
+                error = "Conflict",
+                message = "Data integrity violation: ${ex.mostSpecificCause.message}",
                 path = request.requestURI
             )
         )
