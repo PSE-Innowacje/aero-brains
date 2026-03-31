@@ -9,27 +9,27 @@ interface MenuPermission {
 
 export const menuPermissions: Record<string, MenuPermission> = {
   administration: {
-    roles: ['ADMIN', 'SUPERVISOR', 'PILOT'],
+    roles: ['ADMINISTRATOR', 'SUPERVISOR', 'PILOT'],
     access: {
-      ADMIN: 'full',
+      ADMINISTRATOR: 'full',
       PLANNER: 'none',
       SUPERVISOR: 'readonly',
       PILOT: 'readonly',
     },
   },
   operations: {
-    roles: ['ADMIN', 'PLANNER', 'SUPERVISOR', 'PILOT'],
+    roles: ['ADMINISTRATOR', 'PLANNER', 'SUPERVISOR', 'PILOT'],
     access: {
-      ADMIN: 'readonly',
+      ADMINISTRATOR: 'readonly',
       PLANNER: 'full',
       SUPERVISOR: 'full',
       PILOT: 'readonly',
     },
   },
   flightOrders: {
-    roles: ['ADMIN', 'SUPERVISOR', 'PILOT'],
+    roles: ['ADMINISTRATOR', 'SUPERVISOR', 'PILOT'],
     access: {
-      ADMIN: 'readonly',
+      ADMINISTRATOR: 'readonly',
       PLANNER: 'none',
       SUPERVISOR: 'full',
       PILOT: 'full',

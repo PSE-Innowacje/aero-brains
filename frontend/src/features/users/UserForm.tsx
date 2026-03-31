@@ -181,7 +181,7 @@ const UserForm: React.FC = () => {
               <FormControl fullWidth error={!!errors.role} disabled={readOnly}>
                 <InputLabel>Rola</InputLabel>
                 <Select {...field} label="Rola">
-                  <MenuItem value="ADMIN">Administrator</MenuItem>
+                  <MenuItem value="ADMINISTRATOR">Administrator</MenuItem>
                   <MenuItem value="PLANNER">Osoba planująca</MenuItem>
                   <MenuItem value="SUPERVISOR">Osoba nadzorująca</MenuItem>
                   <MenuItem value="PILOT">Pilot</MenuItem>

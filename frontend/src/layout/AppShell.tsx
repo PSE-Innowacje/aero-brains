@@ -26,7 +26,7 @@ const iconMap: Record<string, string> = {
 };
 
 const roleLabelMap: Record<string, string> = {
-  ADMIN: 'Administrator systemu',
+  ADMINISTRATOR: 'Administrator systemu',
   PLANNER: 'Osoba planująca',
   SUPERVISOR: 'Osoba nadzorująca',
   PILOT: 'Pilot',

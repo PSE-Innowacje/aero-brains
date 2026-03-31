@@ -135,7 +135,7 @@ export const mockUsers: User[] = [
     firstName: 'Marek',
     lastName: 'Jankowski',
     email: 'marek.jankowski@aero.pl',
-    role: 'ADMIN',
+    role: 'ADMINISTRATOR',
   },
   {
     id: 2,
@@ -219,8 +219,8 @@ export const mockOperations: Operation[] = [
     orderProjectNumber: 'DE-25-12020',
     shortDescription: 'Oględziny linii 400kV Wrocław-Oleśnica',
     activities: [
-      { activityType: 'visual_inspection' },
-      { activityType: 'photos' },
+      { activityType: 'VISUAL_INSPECTION' },
+      { activityType: 'PHOTOS' },
     ],
     proposedDateFrom: '2026-04-10',
     proposedDateTo: '2026-04-12',
@@ -247,7 +247,7 @@ export const mockOperations: Operation[] = [
     orderProjectNumber: 'DE-25-12021',
     shortDescription: 'Skan 3D podstacji Wrocław-Południe',
     activities: [
-      { activityType: '3d_scan' },
+      { activityType: 'SCAN_3D' },
     ],
     proposedDateFrom: '2026-04-05',
     proposedDateTo: '2026-04-06',
@@ -273,8 +273,8 @@ export const mockOperations: Operation[] = [
     orderProjectNumber: 'DE-25-12022',
     shortDescription: 'Lokalizacja awarii na linii 220kV Wrocław-Trzebnica',
     activities: [
-      { activityType: 'fault_location' },
-      { activityType: 'photos' },
+      { activityType: 'FAULT_LOCATION' },
+      { activityType: 'PHOTOS' },
     ],
     proposedDateFrom: '2026-04-14',
     proposedDateTo: '2026-04-15',
@@ -303,8 +303,8 @@ export const mockOperations: Operation[] = [
     orderProjectNumber: 'DE-25-12023',
     shortDescription: 'Patrolowanie trasy linii 110kV Wrocław-Sobótka',
     activities: [
-      { activityType: 'patrol' },
-      { activityType: 'visual_inspection' },
+      { activityType: 'PATROL' },
+      { activityType: 'VISUAL_INSPECTION' },
     ],
     proposedDateFrom: '2026-04-20',
     proposedDateTo: '2026-04-22',
@@ -333,8 +333,8 @@ export const mockOperations: Operation[] = [
     orderProjectNumber: 'DE-25-12024',
     shortDescription: 'Oględziny wizualne linii 400kV Wrocław-Oleśnica (północ)',
     activities: [
-      { activityType: 'visual_inspection' },
-      { activityType: 'photos' },
+      { activityType: 'VISUAL_INSPECTION' },
+      { activityType: 'PHOTOS' },
     ],
     proposedDateFrom: '2026-03-15',
     proposedDateTo: '2026-03-16',

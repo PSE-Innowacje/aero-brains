@@ -25,7 +25,7 @@ import type {
 } from './types';
 
 // ── Toggle: set to true to use in-memory mock data instead of real API ──
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 // ── Axios instance ──
 const http = axios.create({
@@ -81,13 +81,29 @@ export const api = {
       });
       // Persist the JWT so the interceptor picks it up
       localStorage.setItem('aero_token', data.token);
-      // The login endpoint returns { token, email, role }.
-      // We don't get full user details here, so we build a minimal AuthUser.
+      // Fetch full user details (firstName, lastName) from users endpoint
+      let firstName = '';
+      let lastName = '';
+      let userId = 0;
+      try {
+        const { data: users } = await http.get<User[]>('/users');
+        const found = users.find((u) => u.email === data.email);
+        if (found) {
+          firstName = found.firstName;
+          lastName = found.lastName;
+          userId = found.id;
+        }
+      } catch {
+        // Non-admin users may not have access to /users — use email as fallback
+        const parts = data.email.split('@')[0].split('.');
+        firstName = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : '';
+        lastName = parts[1] ? parts[1].charAt(0).toUpperCase() + parts[1].slice(1) : '';
+      }
       return {
-        id: 0, // will be resolved when getCurrentUser is called
+        id: userId,
         email: data.email,
-        firstName: '',
-        lastName: '',
+        firstName,
+        lastName,
         role: data.role as AuthUser['role'],
         token: data.token,
       };
@@ -358,19 +374,19 @@ export const api = {
     },
 
     create: async (
-      data: Omit<FlightOperation, 'id' | 'comments' | 'changeLog' | 'createdAt' | 'updatedAt'>,
+      data: Record<string, unknown>,
     ): Promise<FlightOperation> => {
       if (USE_MOCK) {
         await delay();
         const id = nextId(_operations);
-        const item: FlightOperation = {
+        const item = {
           id,
           comments: [],
           changeLog: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           ...data,
-        };
+        } as unknown as FlightOperation;
         _operations.push(item);
         return { ...item };
       }

@@ -24,7 +24,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <RequireRole roles={['ADMIN', 'PLANNER', 'SUPERVISOR', 'PILOT']}>
+      <RequireRole roles={['ADMINISTRATOR', 'PLANNER', 'SUPERVISOR', 'PILOT']}>
         <AppShell />
       </RequireRole>
     ),
@@ -37,7 +37,7 @@ export const router = createBrowserRouter([
       {
         path: 'helicopters',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <HelicopterList />
           </RequireRole>
         ),
@@ -45,7 +45,7 @@ export const router = createBrowserRouter([
       {
         path: 'helicopters/:id',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <HelicopterForm />
           </RequireRole>
         ),
@@ -53,7 +53,7 @@ export const router = createBrowserRouter([
       {
         path: 'crew',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <CrewList />
           </RequireRole>
         ),
@@ -61,7 +61,7 @@ export const router = createBrowserRouter([
       {
         path: 'crew/:id',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <CrewForm />
           </RequireRole>
         ),
@@ -69,7 +69,7 @@ export const router = createBrowserRouter([
       {
         path: 'landing-sites',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <LandingSiteList />
           </RequireRole>
         ),
@@ -77,7 +77,7 @@ export const router = createBrowserRouter([
       {
         path: 'landing-sites/:id',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <LandingSiteForm />
           </RequireRole>
         ),
@@ -85,7 +85,7 @@ export const router = createBrowserRouter([
       {
         path: 'users',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <UserList />
           </RequireRole>
         ),
@@ -93,7 +93,7 @@ export const router = createBrowserRouter([
       {
         path: 'users/:id',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <UserForm />
           </RequireRole>
         ),
@@ -102,7 +102,7 @@ export const router = createBrowserRouter([
       {
         path: 'operations',
         element: (
-          <RequireRole roles={['ADMIN', 'PLANNER', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'PLANNER', 'SUPERVISOR', 'PILOT']}>
             <OperationList />
           </RequireRole>
         ),
@@ -110,7 +110,7 @@ export const router = createBrowserRouter([
       {
         path: 'operations/:id',
         element: (
-          <RequireRole roles={['ADMIN', 'PLANNER', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'PLANNER', 'SUPERVISOR', 'PILOT']}>
             <OperationForm />
           </RequireRole>
         ),
@@ -119,7 +119,7 @@ export const router = createBrowserRouter([
       {
         path: 'flight-orders',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <FlightOrderList />
           </RequireRole>
         ),
@@ -127,7 +127,7 @@ export const router = createBrowserRouter([
       {
         path: 'flight-orders/:id',
         element: (
-          <RequireRole roles={['ADMIN', 'SUPERVISOR', 'PILOT']}>
+          <RequireRole roles={['ADMINISTRATOR', 'SUPERVISOR', 'PILOT']}>
             <FlightOrderForm />
           </RequireRole>
         ),

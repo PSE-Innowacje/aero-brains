@@ -99,14 +99,20 @@ const OperationForm: React.FC = () => {
     return false;
   };
 
+  const isFieldHidden = (fieldName: string): boolean => {
+    if (isNew && plannerBlockedFields.includes(fieldName)) return true;
+    return false;
+  };
+
   const {
     control,
     handleSubmit,
     reset,
     setValue,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<OperationFormData>({
     resolver: zodResolver(operationSchema),
+    mode: 'onChange',
     defaultValues: {
       orderProjectNumber: '',
       shortDescription: '',
@@ -159,9 +165,15 @@ const OperationForm: React.FC = () => {
       };
       if (isNew) {
         return api.operations.create({
-          ...payload,
-          status: 'SUBMITTED' as OperationStatus,
-          createdByEmail: user?.email ?? '',
+          orderProjectNumber: data.orderProjectNumber,
+          shortDescription: data.shortDescription,
+          activities: data.activities,
+          proposedDateFrom: data.proposedDateFrom || undefined,
+          proposedDateTo: data.proposedDateTo || undefined,
+          additionalInfo: data.additionalInfo || undefined,
+          contactEmails: data.contactEmails || undefined,
+          kmlFileName: kmlFileName || undefined,
+          kmlContent: undefined, // KML content sent separately if needed
         });
       }
       return api.operations.update(operationId!, payload);
@@ -223,7 +235,7 @@ const OperationForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Numer zlecenia"
+                label="Numer zlecenia *"
                 error={!!errors.orderProjectNumber}
                 helperText={errors.orderProjectNumber?.message}
                 fullWidth
@@ -238,7 +250,7 @@ const OperationForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Krótki opis"
+                label="Krótki opis *"
                 error={!!errors.shortDescription}
                 helperText={errors.shortDescription?.message}
                 fullWidth
@@ -286,10 +298,10 @@ const OperationForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.activities} disabled={isFieldDisabled('activities')}>
-                <InputLabel>Rodzaj czynności</InputLabel>
+                <InputLabel>Rodzaj czynności *</InputLabel>
                 <Select
                   multiple
-                  label="Rodzaj czynności"
+                  label="Rodzaj czynności *"
                   value={field.value.map((a) => a.activityType)}
                   onChange={(e) => {
                     const selected = e.target.value as string[];
@@ -365,7 +377,7 @@ const OperationForm: React.FC = () => {
               <TextField
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
-                label="Dystans trasy (km)"
+                label="Dystans trasy (km) *"
                 type="number"
                 error={!!errors.routeLengthKm}
                 helperText={errors.routeLengthKm?.message}
@@ -375,56 +387,62 @@ const OperationForm: React.FC = () => {
             )}
           />
 
-          <Controller
-            name="plannedDateFrom"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Planowana data od"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedDateFrom}
-                helperText={errors.plannedDateFrom?.message}
-                fullWidth
-                disabled={isFieldDisabled('plannedDateFrom')}
-              />
-            )}
-          />
+          {!isFieldHidden('plannedDateFrom') && (
+            <Controller
+              name="plannedDateFrom"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Planowana data od"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.plannedDateFrom}
+                  helperText={errors.plannedDateFrom?.message}
+                  fullWidth
+                  disabled={isFieldDisabled('plannedDateFrom')}
+                />
+              )}
+            />
+          )}
 
-          <Controller
-            name="plannedDateTo"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Planowana data do"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedDateTo}
-                helperText={errors.plannedDateTo?.message}
-                fullWidth
-                disabled={isFieldDisabled('plannedDateTo')}
-              />
-            )}
-          />
+          {!isFieldHidden('plannedDateTo') && (
+            <Controller
+              name="plannedDateTo"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Planowana data do"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.plannedDateTo}
+                  helperText={errors.plannedDateTo?.message}
+                  fullWidth
+                  disabled={isFieldDisabled('plannedDateTo')}
+                />
+              )}
+            />
+          )}
 
-          <Controller
-            name="postCompletionNotes"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Uwagi porealizacyjne"
-                multiline
-                rows={3}
-                error={!!errors.postCompletionNotes}
-                helperText={errors.postCompletionNotes?.message}
-                fullWidth
-                disabled={isFieldDisabled('postCompletionNotes')}
-              />
-            )}
-          />
+          {!isFieldHidden('postCompletionNotes') && (
+            <Controller
+              name="postCompletionNotes"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Uwagi porealizacyjne"
+                  multiline
+                  rows={3}
+                  error={!!errors.postCompletionNotes}
+                  helperText={errors.postCompletionNotes?.message}
+                  fullWidth
+                  disabled={isFieldDisabled('postCompletionNotes')}
+                />
+              )}
+            />
+          )}
 
           {/* Contact emails - read-only */}
           {operation?.contactEmails && (
@@ -461,7 +479,7 @@ const OperationForm: React.FC = () => {
               <Button
                 type="submit"
                 variant="contained"
-                disabled={saveMutation.isPending}
+                disabled={saveMutation.isPending || !isValid}
               >
                 Zapisz
               </Button>

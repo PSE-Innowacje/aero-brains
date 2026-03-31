@@ -16,7 +16,7 @@ export const userSchema = z.object({
     .min(1, 'Email jest wymagany')
     .max(100, 'Maksymalnie 100 znaków')
     .regex(emailRegex, 'Nieprawidłowy format adresu email'),
-  role: z.enum(['ADMIN', 'PLANNER', 'SUPERVISOR', 'PILOT']),
+  role: z.enum(['ADMINISTRATOR', 'PLANNER', 'SUPERVISOR', 'PILOT']),
   password: z.string().optional(),
 });
 

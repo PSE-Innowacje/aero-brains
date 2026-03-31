@@ -1,5 +1,5 @@
 // Roles
-export type UserRole = 'ADMIN' | 'PLANNER' | 'SUPERVISOR' | 'PILOT';
+export type UserRole = 'ADMINISTRATOR' | 'PLANNER' | 'SUPERVISOR' | 'PILOT';
 
 // Helicopter
 export interface Helicopter {
@@ -65,20 +65,22 @@ export const OPERATION_STATUS_LABELS: Record<OperationStatus, string> = {
   CANCELLED: 'Rezygnacja',
 };
 
-// Activity types
+// Activity types — must match backend enum: ActivityType.kt
 export type ActivityType =
-  | 'visual_inspection'
-  | '3d_scan'
-  | 'fault_location'
-  | 'photos'
-  | 'patrol';
+  | 'VISUAL_INSPECTION'
+  | 'SCAN_3D'
+  | 'FAULT_LOCATION'
+  | 'PHOTOS'
+  | 'PATROL'
+  | 'OTHER';
 
 export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
-  visual_inspection: 'Oględziny wizualne',
-  '3d_scan': 'Skan 3D',
-  fault_location: 'Lokalizacja awarii',
-  photos: 'Zdjęcia',
-  patrol: 'Patrolowanie',
+  VISUAL_INSPECTION: 'Oględziny wizualne',
+  SCAN_3D: 'Skan 3D',
+  FAULT_LOCATION: 'Lokalizacja awarii',
+  PHOTOS: 'Zdjęcia',
+  PATROL: 'Patrolowanie',
+  OTHER: 'Inne',
 };
 
 // Activity type entry (backend structure)

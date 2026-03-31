@@ -30,6 +30,11 @@ export const operationSchema = z.object({
     .min(0, 'Minimum 0 km'),
   plannedDateFrom: z.string().optional().or(z.literal('')),
   plannedDateTo: z.string().optional().or(z.literal('')),
+  contactEmails: z
+    .string()
+    .max(500, 'Maksymalnie 500 znaków')
+    .optional()
+    .or(z.literal('')),
   postCompletionNotes: z
     .string()
     .max(500, 'Maksymalnie 500 znaków')

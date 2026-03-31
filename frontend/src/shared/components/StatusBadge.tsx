@@ -25,7 +25,7 @@ const statusStyles: Record<string, { color: string; bg: string }> = {
   PILOT:                 { color: '#1e40af', bg: '#dbeafe' },
   OBSERVER:              { color: '#6b21a8', bg: '#f3e8ff' },
   // User roles
-  ADMIN:                 { color: '#7c3aed', bg: '#ede9fe' },
+  ADMINISTRATOR:         { color: '#7c3aed', bg: '#ede9fe' },
   PLANNER:               { color: '#1d4ed8', bg: '#dbeafe' },
   SUPERVISOR:            { color: '#b45309', bg: '#fef3c7' },
 };

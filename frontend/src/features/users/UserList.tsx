@@ -11,7 +11,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
 
 const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Administrator',
+  ADMINISTRATOR: 'Administrator',
   PLANNER: 'Osoba planująca',
   SUPERVISOR: 'Osoba nadzorująca',
   PILOT: 'Pilot',

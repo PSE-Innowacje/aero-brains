@@ -15,8 +15,8 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('anna.nowak@aero.pl');
-  const [password, setPassword] = useState('asd');
+  const [email, setEmail] = useState('supervisor@aero.pl');
+  const [password, setPassword] = useState('password');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
