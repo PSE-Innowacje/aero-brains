@@ -4,20 +4,20 @@
 
 -- =====================
 -- USERS (password = 'password')
--- BCrypt hash for 'password': $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+-- BCrypt hash for 'password': $2a$10$UTa6YOqrQlgBmwTNwaioz.6K9Ihsyjo.BRwtxXwwbgCg6NJFjNxsG
 -- =====================
 
 INSERT INTO users (first_name, last_name, email, password, role) VALUES
-    ('Admin', 'Systemowy', 'admin@aero.pl', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMINISTRATOR');
+    ('Admin', 'Systemowy', 'admin@aero.pl', '$2a$10$UTa6YOqrQlgBmwTNwaioz.6K9Ihsyjo.BRwtxXwwbgCg6NJFjNxsG', 'ADMINISTRATOR');
 
 INSERT INTO users (first_name, last_name, email, password, role) VALUES
-    ('Anna', 'Kowalska', 'planner@aero.pl', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'PLANNER');
+    ('Anna', 'Kowalska', 'planner@aero.pl', '$2a$10$UTa6YOqrQlgBmwTNwaioz.6K9Ihsyjo.BRwtxXwwbgCg6NJFjNxsG', 'PLANNER');
 
 INSERT INTO users (first_name, last_name, email, password, role) VALUES
-    ('Jan', 'Nowak', 'supervisor@aero.pl', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'SUPERVISOR');
+    ('Jan', 'Nowak', 'supervisor@aero.pl', '$2a$10$UTa6YOqrQlgBmwTNwaioz.6K9Ihsyjo.BRwtxXwwbgCg6NJFjNxsG', 'SUPERVISOR');
 
 INSERT INTO users (first_name, last_name, email, password, role) VALUES
-    ('Piotr', 'Wiśniewski', 'pilot@aero.pl', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'PILOT');
+    ('Piotr', 'Wiśniewski', 'pilot@aero.pl', '$2a$10$UTa6YOqrQlgBmwTNwaioz.6K9Ihsyjo.BRwtxXwwbgCg6NJFjNxsG', 'PILOT');
 
 -- =====================
 -- CREW MEMBERS
