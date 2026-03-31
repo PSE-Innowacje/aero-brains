@@ -187,6 +187,28 @@ class FlightOperationSpec extends BaseIntegrationSpec {
         result.andExpect(status().isCreated())
     }
 
+    def "should reject OTHER without description even with dates and additionalInfo"() {
+        given:
+        def token = plannerToken()
+        def request = [
+                orderProjectNumber: "dsadas",
+                shortDescription  : "dsadsa",
+                activities        : [[activityType: "OTHER"]],
+                proposedDateFrom  : "2026-04-08",
+                proposedDateTo    : "2026-04-01",
+                additionalInfo    : "dsad"
+        ]
+
+        when:
+        def result = mockMvc.perform(
+                post("/api/flight-operations").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        )
+
+        then: "should return 400, never 500/NPE"
+        result.andExpect(status().isBadRequest())
+    }
+
     // ==================== US-B: Planner reads operations ====================
 
     def "planner should list operations"() {
