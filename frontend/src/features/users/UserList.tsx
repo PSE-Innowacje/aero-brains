@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Box, Typography } from '@mui/material';
+import { Button, Box } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import DataTable from '../../shared/components/DataTable';
+import PageHeader from '../../shared/components/PageHeader';
+import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
@@ -26,7 +28,9 @@ const columns: GridColDef[] = [
     field: 'role',
     headerName: 'Rola',
     width: 180,
-    valueFormatter: (value: string) => ROLE_LABELS[value] ?? value,
+    renderCell: (params) => (
+      <StatusBadge statusCode={params.value as string} label={ROLE_LABELS[params.value as string] ?? params.value} />
+    ),
   },
 ];
 
@@ -47,17 +51,31 @@ const UserList: React.FC = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Użytkownicy</Typography>
-        {showAddButton && (
-          <Button
-            variant="contained"
-            onClick={() => navigate('/users/new')}
-          >
-            Dodaj użytkownika
-          </Button>
-        )}
-      </Box>
+      <PageHeader
+        title="Użytkownicy"
+        subtitle="Zarządzanie kontami"
+        action={
+          showAddButton ? (
+            <Button
+              variant="contained"
+              onClick={() => navigate('/users/new')}
+              sx={{
+                bgcolor: '#3b7ff5',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 600,
+                textTransform: 'none',
+                borderRadius: '7px',
+                px: 1.5,
+                py: 0.75,
+                '&:hover': { bgcolor: '#2563eb' },
+              }}
+            >
+              Dodaj użytkownika
+            </Button>
+          ) : undefined
+        }
+      />
       <DataTable
         rows={users}
         columns={columns}

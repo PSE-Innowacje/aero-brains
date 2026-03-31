@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Box, Typography } from '@mui/material';
+import { Button, Box } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import DataTable from '../../shared/components/DataTable';
+import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
@@ -84,17 +85,31 @@ const OperationList: React.FC = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Operacje</Typography>
-        {showAddButton && (
-          <Button
-            variant="contained"
-            onClick={() => navigate('/operations/new')}
-          >
-            Dodaj operację
-          </Button>
-        )}
-      </Box>
+      <PageHeader
+        title="Lista operacji"
+        subtitle="Planowane operacje lotnicze"
+        action={
+          showAddButton ? (
+            <Button
+              variant="contained"
+              onClick={() => navigate('/operations/new')}
+              sx={{
+                bgcolor: '#3b7ff5',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 600,
+                textTransform: 'none',
+                borderRadius: '7px',
+                px: 1.5,
+                py: 0.75,
+                '&:hover': { bgcolor: '#2563eb' },
+              }}
+            >
+              Dodaj operację
+            </Button>
+          ) : undefined
+        }
+      />
       <DataTable
         rows={operations}
         columns={columns}

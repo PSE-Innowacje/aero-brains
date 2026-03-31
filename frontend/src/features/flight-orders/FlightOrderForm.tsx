@@ -18,6 +18,7 @@ import {
   Divider,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { flightOrderSchema, type FlightOrderFormData } from './flightOrderSchema';
 import FlightOrderValidation from './FlightOrderValidation';
 import FlightOrderMap from './FlightOrderMap';
@@ -305,9 +306,9 @@ const FlightOrderForm: React.FC = () => {
       >
         Powrót do listy
       </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowe zlecenie lotu' : `Zlecenie #${flightOrder?.id ?? ''}`}
-      </Typography>
+      <PageHeader
+        title={isNew ? 'Nowe zlecenie lotu' : `Zlecenie #${flightOrder?.id ?? ''}`}
+      />
 
       {flightOrder && (
         <Box mb={2}>

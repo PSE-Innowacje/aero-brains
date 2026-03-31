@@ -21,6 +21,7 @@ import {
   ListItemText,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { operationSchema, type OperationFormData } from './operationSchema';
 import OperationMap from './OperationMap';
 import OperationStatusActions from './OperationStatusActions';
@@ -201,9 +202,9 @@ const OperationForm: React.FC = () => {
       >
         Powrót do listy
       </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowa operacja' : `Operacja #${operation?.id ?? ''}`}
-      </Typography>
+      <PageHeader
+        title={isNew ? 'Nowa operacja' : `Operacja #${operation?.id ?? ''}`}
+      />
 
       {operation && (
         <Box mb={2}>

@@ -16,6 +16,7 @@ import {
   Stack,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { crewSchema, type CrewFormData } from './crewSchema';
 import { api } from '../../api/client';
 
@@ -111,9 +112,9 @@ const CrewForm: React.FC = () => {
       >
         Powrót do listy
       </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowy członek załogi' : 'Edycja członka załogi'}
-      </Typography>
+      <PageHeader
+        title={isNew ? 'Nowy członek załogi' : 'Edycja członka załogi'}
+      />
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller

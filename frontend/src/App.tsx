@@ -15,7 +15,54 @@ const queryClient = new QueryClient({
   },
 });
 
-const theme = createTheme();
+const theme = createTheme({
+  typography: {
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+  },
+  palette: {
+    background: {
+      default: '#e8edf3',
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+          fontSize: 12,
+          borderRadius: '7px',
+          fontFamily: 'inherit',
+        },
+        contained: {
+          boxShadow: 'none',
+          '&:hover': { boxShadow: 'none' },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiInputBase-root': {
+            fontSize: 12,
+            borderRadius: '7px',
+          },
+          '& .MuiInputLabel-root': {
+            fontSize: 12,
+          },
+        },
+      },
+    },
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          fontSize: 12,
+          borderRadius: '7px',
+        },
+      },
+    },
+  },
+});
 
 const App: React.FC = () => {
   return (

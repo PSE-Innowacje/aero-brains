@@ -16,6 +16,7 @@ import {
   Stack,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { userSchema, type UserFormData } from './userSchema';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
@@ -105,9 +106,9 @@ const UserForm: React.FC = () => {
       >
         Powrót do listy
       </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowy użytkownik' : 'Edycja użytkownika'}
-      </Typography>
+      <PageHeader
+        title={isNew ? 'Nowy użytkownik' : 'Edycja użytkownika'}
+      />
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller

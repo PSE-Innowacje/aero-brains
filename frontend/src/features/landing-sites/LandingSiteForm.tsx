@@ -11,6 +11,7 @@ import {
   Stack,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { landingSiteSchema, type LandingSiteFormData } from './landingSiteSchema';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
@@ -106,9 +107,9 @@ const LandingSiteForm: React.FC = () => {
       >
         Powrót do listy
       </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowe lądowisko' : 'Edycja lądowiska'}
-      </Typography>
+      <PageHeader
+        title={isNew ? 'Nowe lądowisko' : 'Edycja lądowiska'}
+      />
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
