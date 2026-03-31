@@ -16,12 +16,12 @@ interface FlightOperationMapper {
     @Mapping(target = "routeLengthKm", ignore = true)
     @Mapping(target = "plannedDateFrom", ignore = true)
     @Mapping(target = "plannedDateTo", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "createdByEmail", ignore = true)
+    @Mapping(target = "status", expression = "java(pl.aerobrains.operations.domain.OperationStatus.INTRODUCED)")
+    @Mapping(target = "createdByEmail", constant = "")
     @Mapping(target = "postCompletionNotes", ignore = true)
-    @Mapping(target = "comments", ignore = true)
-    @Mapping(target = "changeLog", ignore = true)
-    @Mapping(target = "activities", ignore = true)
+    @Mapping(target = "comments", expression = "java(new java.util.ArrayList<>())")
+    @Mapping(target = "changeLog", expression = "java(new java.util.ArrayList<>())")
+    @Mapping(target = "activities", expression = "java(new java.util.ArrayList<>())")
     @Mapping(target = "geojsonContent", ignore = true)
     fun toEntity(request: CreateFlightOperationRequest): FlightOperation
 
