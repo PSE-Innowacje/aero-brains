@@ -2,22 +2,27 @@ import React from 'react';
 import { Chip, type ChipProps } from '@mui/material';
 
 interface StatusBadgeProps {
-  statusCode: number;
+  statusCode: string | number;
   label: string;
 }
 
-const statusColorMap: Record<number, ChipProps['color']> = {
-  1: 'info',      // Wprowadzone
-  2: 'error',     // Odrzucone
-  3: 'success',   // Potwierdzone
-  4: 'warning',   // Zaplanowane
-  5: 'warning',   // Częściowo zrealizowane
-  6: 'success',   // Zrealizowane
-  7: 'default',   // Rezygnacja
+const statusColorMap: Record<string, ChipProps['color']> = {
+  // Operation statuses
+  SUBMITTED: 'info',
+  REJECTED: 'error',
+  CONFIRMED: 'success',
+  SCHEDULED: 'warning',
+  PARTIALLY_COMPLETED: 'warning',
+  COMPLETED: 'success',
+  CANCELLED: 'default',
+  // Flight order statuses
+  PENDING_APPROVAL: 'info',
+  ACCEPTED: 'success',
+  NOT_COMPLETED: 'default',
 };
 
 const StatusBadge: React.FC<StatusBadgeProps> = ({ statusCode, label }) => {
-  const color = statusColorMap[statusCode] ?? 'default';
+  const color = statusColorMap[String(statusCode)] ?? 'default';
 
   return <Chip label={label} color={color} size="small" />;
 };

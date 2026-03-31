@@ -52,8 +52,8 @@ const LandingSiteForm: React.FC = () => {
     if (landingSite) {
       reset({
         name: landingSite.name,
-        lat: landingSite.coordinates.lat,
-        lng: landingSite.coordinates.lng,
+        lat: landingSite.latitude,
+        lng: landingSite.longitude,
       });
     }
   }, [landingSite, reset]);
@@ -75,7 +75,8 @@ const LandingSiteForm: React.FC = () => {
     mutationFn: (data: LandingSiteFormData) => {
       const payload = {
         name: data.name,
-        coordinates: { lat: data.lat, lng: data.lng },
+        latitude: data.lat,
+        longitude: data.lng,
       };
       if (isNew) {
         return api.landingSites.create(payload);

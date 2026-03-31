@@ -8,7 +8,7 @@ import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
   FLIGHT_ORDER_STATUS_LABELS,
-  type FlightOrderStatusCode,
+  type FlightOrderStatus,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
@@ -45,12 +45,12 @@ const FlightOrderList: React.FC = () => {
   const columns: GridColDef[] = useMemo(
     () => [
       {
-        field: 'orderNumber',
+        field: 'id',
         headerName: 'Nr zlecenia',
         width: 150,
       },
       {
-        field: 'plannedStartDateTime',
+        field: 'plannedStartTime',
         headerName: 'Data startu',
         width: 180,
         valueFormatter: (value: string) => {
@@ -89,8 +89,8 @@ const FlightOrderList: React.FC = () => {
         width: 200,
         renderCell: (params) => (
           <StatusBadge
-            statusCode={params.value as number}
-            label={FLIGHT_ORDER_STATUS_LABELS[params.value as FlightOrderStatusCode] ?? ''}
+            statusCode={params.value as string}
+            label={FLIGHT_ORDER_STATUS_LABELS[params.value as FlightOrderStatus] ?? ''}
           />
         ),
       },
@@ -122,9 +122,9 @@ const FlightOrderList: React.FC = () => {
         columns={columns}
         loading={loadingOrders}
         onRowClick={handleRowClick}
-        defaultSortField="plannedStartDateTime"
+        defaultSortField="plannedStartTime"
         defaultSortDirection="asc"
-        initialFilter={{ field: 'status', operator: 'equals', value: '2' }}
+        initialFilter={{ field: 'status', operator: 'equals', value: 'PENDING_APPROVAL' }}
       />
     </Box>
   );

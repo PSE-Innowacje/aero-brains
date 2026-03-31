@@ -9,10 +9,10 @@ import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: 'Administrator',
-  planner: 'Osoba planująca',
-  supervisor: 'Osoba nadzorująca',
-  pilot: 'Pilot',
+  ADMIN: 'Administrator',
+  PLANNER: 'Osoba planująca',
+  SUPERVISOR: 'Osoba nadzorująca',
+  PILOT: 'Pilot',
 };
 
 const columns: GridColDef[] = [

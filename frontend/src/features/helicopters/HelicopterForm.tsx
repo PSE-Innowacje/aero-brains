@@ -49,13 +49,13 @@ const HelicopterForm: React.FC = () => {
     resolver: zodResolver(helicopterSchema),
     defaultValues: {
       registrationNumber: '',
-      type: '',
+      helicopterType: '',
       description: '',
       maxCrewCount: 1,
       maxCrewWeight: 1,
-      status: 'active',
+      status: 'ACTIVE',
       inspectionExpiryDate: '',
-      rangeWithoutLanding: 1,
+      rangeKm: 1,
     },
   });
 
@@ -63,13 +63,13 @@ const HelicopterForm: React.FC = () => {
     if (helicopter) {
       reset({
         registrationNumber: helicopter.registrationNumber,
-        type: helicopter.type,
+        helicopterType: helicopter.helicopterType,
         description: helicopter.description ?? '',
         maxCrewCount: helicopter.maxCrewCount,
         maxCrewWeight: helicopter.maxCrewWeight,
         status: helicopter.status,
         inspectionExpiryDate: helicopter.inspectionExpiryDate ?? '',
-        rangeWithoutLanding: helicopter.rangeWithoutLanding,
+        rangeKm: helicopter.rangeKm,
       });
     }
   }, [helicopter, reset]);
@@ -136,14 +136,14 @@ const HelicopterForm: React.FC = () => {
               />
 
               <Controller
-                name="type"
+                name="helicopterType"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     label="Typ"
-                    error={!!errors.type}
-                    helperText={errors.type?.message}
+                    error={!!errors.helicopterType}
+                    helperText={errors.helicopterType?.message}
                     fullWidth
                     disabled={readOnly}
                   />
@@ -206,8 +206,8 @@ const HelicopterForm: React.FC = () => {
                   <FormControl fullWidth error={!!errors.status} disabled={readOnly}>
                     <InputLabel>Status</InputLabel>
                     <Select {...field} label="Status">
-                      <MenuItem value="active">Aktywny</MenuItem>
-                      <MenuItem value="inactive">Nieaktywny</MenuItem>
+                      <MenuItem value="ACTIVE">Aktywny</MenuItem>
+                      <MenuItem value="INACTIVE">Nieaktywny</MenuItem>
                     </Select>
                     {errors.status && (
                       <FormHelperText>{errors.status.message}</FormHelperText>
@@ -216,7 +216,7 @@ const HelicopterForm: React.FC = () => {
                 )}
               />
 
-              {statusValue === 'active' && (
+              {statusValue === 'ACTIVE' && (
                 <Controller
                   name="inspectionExpiryDate"
                   control={control}
@@ -236,7 +236,7 @@ const HelicopterForm: React.FC = () => {
               )}
 
               <Controller
-                name="rangeWithoutLanding"
+                name="rangeKm"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -244,8 +244,8 @@ const HelicopterForm: React.FC = () => {
                     onChange={(e) => field.onChange(Number(e.target.value))}
                     label="Zasięg bez lądowania (km)"
                     type="number"
-                    error={!!errors.rangeWithoutLanding}
-                    helperText={errors.rangeWithoutLanding?.message}
+                    error={!!errors.rangeKm}
+                    helperText={errors.rangeKm?.message}
                     fullWidth
                     disabled={readOnly}
                   />
@@ -281,12 +281,12 @@ const HelicopterForm: React.FC = () => {
             <CardMedia
               component="img"
               image={helicopter.imageUrl}
-              alt={`${helicopter.type} — ${helicopter.registrationNumber}`}
+              alt={`${helicopter.helicopterType} — ${helicopter.registrationNumber}`}
               sx={{ height: 260, objectFit: 'cover' }}
             />
             <Box sx={{ px: 2, py: 1.5, bgcolor: 'grey.50' }}>
               <Typography variant="subtitle2">
-                {helicopter.type}
+                {helicopter.helicopterType}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {helicopter.registrationNumber}

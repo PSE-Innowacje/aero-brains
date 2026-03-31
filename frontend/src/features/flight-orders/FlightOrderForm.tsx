@@ -26,7 +26,7 @@ import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
   FLIGHT_ORDER_STATUS_LABELS,
-  type FlightOrderStatusCode,
+  type FlightOrderStatus,
   type CrewMember,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
@@ -76,9 +76,9 @@ const FlightOrderForm: React.FC = () => {
     [allHelicopters],
   );
 
-  // Operations with status = 3 (Potwierdzone do planu)
+  // Operations with status = CONFIRMED (Potwierdzone do planu)
   const availableOperations = useMemo(
-    () => allOperations.filter((op) => op.status === 3),
+    () => allOperations.filter((op) => op.status === 'CONFIRMED'),
     [allOperations],
   );
 
@@ -102,17 +102,17 @@ const FlightOrderForm: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(flightOrderSchema) as any,
     defaultValues: {
-      plannedStartDateTime: '',
-      plannedLandingDateTime: '',
+      plannedStartTime: '',
+      plannedEndTime: '',
       pilotId: 0,
       helicopterId: 0,
       crewMemberIds: [],
-      startLandingSiteId: 0,
-      endLandingSiteId: 0,
-      selectedOperationIds: [],
-      estimatedRouteDistance: 0,
-      actualStartDateTime: '',
-      actualLandingDateTime: '',
+      departureSiteId: 0,
+      arrivalSiteId: 0,
+      operationIds: [],
+      estimatedRouteLengthKm: 0,
+      actualStartTime: '',
+      actualEndTime: '',
     },
   });
 
@@ -136,17 +136,17 @@ const FlightOrderForm: React.FC = () => {
   useEffect(() => {
     if (flightOrder) {
       reset({
-        plannedStartDateTime: flightOrder.plannedStartDateTime,
-        plannedLandingDateTime: flightOrder.plannedLandingDateTime,
+        plannedStartTime: flightOrder.plannedStartTime,
+        plannedEndTime: flightOrder.plannedEndTime,
         pilotId: flightOrder.pilotId,
         helicopterId: flightOrder.helicopterId,
         crewMemberIds: flightOrder.crewMemberIds,
-        startLandingSiteId: flightOrder.startLandingSiteId,
-        endLandingSiteId: flightOrder.endLandingSiteId,
-        selectedOperationIds: flightOrder.selectedOperationIds,
-        estimatedRouteDistance: flightOrder.estimatedRouteDistance,
-        actualStartDateTime: flightOrder.actualStartDateTime ?? '',
-        actualLandingDateTime: flightOrder.actualLandingDateTime ?? '',
+        departureSiteId: flightOrder.departureSiteId,
+        arrivalSiteId: flightOrder.arrivalSiteId,
+        operationIds: flightOrder.operationIds,
+        estimatedRouteLengthKm: flightOrder.estimatedRouteLengthKm,
+        actualStartTime: flightOrder.actualStartTime ?? '',
+        actualEndTime: flightOrder.actualEndTime ?? '',
       });
     }
   }, [flightOrder, reset]);
@@ -184,33 +184,48 @@ const FlightOrderForm: React.FC = () => {
 
   // Resolve landing sites
   const startSite = useMemo(
-    () => landingSites.find((ls) => ls.id === watchedValues.startLandingSiteId),
-    [landingSites, watchedValues.startLandingSiteId],
+    () => landingSites.find((ls) => ls.id === watchedValues.departureSiteId),
+    [landingSites, watchedValues.departureSiteId],
   );
 
   const endSite = useMemo(
-    () => landingSites.find((ls) => ls.id === watchedValues.endLandingSiteId),
-    [landingSites, watchedValues.endLandingSiteId],
+    () => landingSites.find((ls) => ls.id === watchedValues.arrivalSiteId),
+    [landingSites, watchedValues.arrivalSiteId],
   );
 
-  // Resolve operation points for map
+  // Resolve operation points for map from geojsonContent
   const operationPoints = useMemo(() => {
     const points: Array<{ lat: number; lng: number }> = [];
     const selectedOps = allOperations.filter((op) =>
-      (watchedValues.selectedOperationIds ?? []).includes(op.id),
+      (watchedValues.operationIds ?? []).includes(op.id),
     );
     for (const op of selectedOps) {
-      if (op.kmlPoints) {
-        points.push(...op.kmlPoints);
+      if (op.geojsonContent) {
+        try {
+          const geojson = JSON.parse(op.geojsonContent);
+          if (geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)) {
+            for (const feature of geojson.features) {
+              if (feature.geometry?.type === 'Point' && Array.isArray(feature.geometry.coordinates)) {
+                points.push({ lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] });
+              }
+            }
+          } else if (geojson.type === 'LineString' && Array.isArray(geojson.coordinates)) {
+            for (const coord of geojson.coordinates) {
+              points.push({ lat: coord[1], lng: coord[0] });
+            }
+          }
+        } catch {
+          // skip invalid geojson
+        }
       }
     }
     return points;
-  }, [allOperations, watchedValues.selectedOperationIds]);
+  }, [allOperations, watchedValues.operationIds]);
 
   // Check if any validation warnings exist
   const hasValidationWarnings = useMemo(() => {
-    const flightDay = watchedValues.plannedStartDateTime
-      ? watchedValues.plannedStartDateTime.slice(0, 10)
+    const flightDay = watchedValues.plannedStartTime
+      ? watchedValues.plannedStartTime.slice(0, 10)
       : '';
 
     if (selectedHelicopter && flightDay && selectedHelicopter.inspectionExpiryDate) {
@@ -227,7 +242,7 @@ const FlightOrderForm: React.FC = () => {
     if (selectedHelicopter && crewWeight > selectedHelicopter.maxCrewWeight) return true;
     if (
       selectedHelicopter &&
-      watchedValues.estimatedRouteDistance > selectedHelicopter.rangeWithoutLanding
+      watchedValues.estimatedRouteLengthKm > selectedHelicopter.rangeKm
     ) {
       return true;
     }
@@ -240,13 +255,13 @@ const FlightOrderForm: React.FC = () => {
       const payload = {
         ...data,
         crewWeight,
-        actualStartDateTime: data.actualStartDateTime || undefined,
-        actualLandingDateTime: data.actualLandingDateTime || undefined,
+        actualStartTime: data.actualStartTime || undefined,
+        actualEndTime: data.actualEndTime || undefined,
       };
       if (isNew) {
         return api.flightOrders.create({
           ...payload,
-          status: 2 as FlightOrderStatusCode,
+          status: 'PENDING_APPROVAL' as FlightOrderStatus,
         });
       }
       return api.flightOrders.update(flightOrderId!, payload);
@@ -259,7 +274,7 @@ const FlightOrderForm: React.FC = () => {
 
   // Status mutation
   const statusMutation = useMutation({
-    mutationFn: (newStatus: FlightOrderStatusCode) =>
+    mutationFn: (newStatus: FlightOrderStatus) =>
       api.flightOrders.updateStatus(flightOrderId!, newStatus),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flightOrders'] });
@@ -271,7 +286,7 @@ const FlightOrderForm: React.FC = () => {
     saveMutation.mutate(data);
   };
 
-  const handleStatusChange = (newStatus: FlightOrderStatusCode) => {
+  const handleStatusChange = (newStatus: FlightOrderStatus) => {
     statusMutation.mutate(newStatus);
   };
 
@@ -279,7 +294,7 @@ const FlightOrderForm: React.FC = () => {
     return <Typography>Ładowanie...</Typography>;
   }
 
-  const showActualFields = flightOrder && flightOrder.status >= 4;
+  const showActualFields = flightOrder && ['ACCEPTED', 'PARTIALLY_COMPLETED', 'COMPLETED', 'NOT_COMPLETED'].includes(flightOrder.status);
 
   return (
     <Box maxWidth={800}>
@@ -291,7 +306,7 @@ const FlightOrderForm: React.FC = () => {
         Powrót do listy
       </Button>
       <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowe zlecenie lotu' : `Zlecenie ${flightOrder?.orderNumber ?? ''}`}
+        {isNew ? 'Nowe zlecenie lotu' : `Zlecenie #${flightOrder?.id ?? ''}`}
       </Typography>
 
       {flightOrder && (
@@ -307,7 +322,7 @@ const FlightOrderForm: React.FC = () => {
         <Stack spacing={2}>
           {/* Planned start date/time */}
           <Controller
-            name="plannedStartDateTime"
+            name="plannedStartTime"
             control={control}
             render={({ field }) => (
               <TextField
@@ -315,8 +330,8 @@ const FlightOrderForm: React.FC = () => {
                 label="Planowana data startu"
                 type="datetime-local"
                 InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedStartDateTime}
-                helperText={errors.plannedStartDateTime?.message}
+                error={!!errors.plannedStartTime}
+                helperText={errors.plannedStartTime?.message}
                 fullWidth
                 disabled={readOnly}
               />
@@ -325,7 +340,7 @@ const FlightOrderForm: React.FC = () => {
 
           {/* Planned landing date/time */}
           <Controller
-            name="plannedLandingDateTime"
+            name="plannedEndTime"
             control={control}
             render={({ field }) => (
               <TextField
@@ -333,8 +348,8 @@ const FlightOrderForm: React.FC = () => {
                 label="Planowana data lądowania"
                 type="datetime-local"
                 InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedLandingDateTime}
-                helperText={errors.plannedLandingDateTime?.message}
+                error={!!errors.plannedEndTime}
+                helperText={errors.plannedEndTime?.message}
                 fullWidth
                 disabled={readOnly}
               />
@@ -451,12 +466,12 @@ const FlightOrderForm: React.FC = () => {
             InputProps={{ readOnly: true }}
           />
 
-          {/* Start landing site */}
+          {/* Departure site */}
           <Controller
-            name="startLandingSiteId"
+            name="departureSiteId"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.startLandingSiteId} disabled={readOnly}>
+              <FormControl fullWidth error={!!errors.departureSiteId} disabled={readOnly}>
                 <InputLabel>Miejsce startu</InputLabel>
                 <Select
                   {...field}
@@ -470,19 +485,19 @@ const FlightOrderForm: React.FC = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.startLandingSiteId && (
-                  <FormHelperText>{errors.startLandingSiteId.message}</FormHelperText>
+                {errors.departureSiteId && (
+                  <FormHelperText>{errors.departureSiteId.message}</FormHelperText>
                 )}
               </FormControl>
             )}
           />
 
-          {/* End landing site */}
+          {/* Arrival site */}
           <Controller
-            name="endLandingSiteId"
+            name="arrivalSiteId"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.endLandingSiteId} disabled={readOnly}>
+              <FormControl fullWidth error={!!errors.arrivalSiteId} disabled={readOnly}>
                 <InputLabel>Miejsce lądowania</InputLabel>
                 <Select
                   {...field}
@@ -496,8 +511,8 @@ const FlightOrderForm: React.FC = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.endLandingSiteId && (
-                  <FormHelperText>{errors.endLandingSiteId.message}</FormHelperText>
+                {errors.arrivalSiteId && (
+                  <FormHelperText>{errors.arrivalSiteId.message}</FormHelperText>
                 )}
               </FormControl>
             )}
@@ -505,10 +520,10 @@ const FlightOrderForm: React.FC = () => {
 
           {/* Selected operations (multi-select) */}
           <Controller
-            name="selectedOperationIds"
+            name="operationIds"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.selectedOperationIds} disabled={readOnly}>
+              <FormControl fullWidth error={!!errors.operationIds} disabled={readOnly}>
                 <InputLabel>Operacje</InputLabel>
                 <Select
                   {...field}
@@ -532,7 +547,7 @@ const FlightOrderForm: React.FC = () => {
                             key={opId}
                             label={
                               op
-                                ? `${op.operationNumber} - ${op.shortDescription}`
+                                ? `${op.orderProjectNumber} - ${op.shortDescription}`
                                 : opId
                             }
                             size="small"
@@ -544,12 +559,12 @@ const FlightOrderForm: React.FC = () => {
                 >
                   {availableOperations.map((op) => (
                     <MenuItem key={op.id} value={op.id}>
-                      {op.operationNumber} - {op.shortDescription}
+                      {op.orderProjectNumber} - {op.shortDescription}
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.selectedOperationIds && (
-                  <FormHelperText>{errors.selectedOperationIds.message}</FormHelperText>
+                {errors.operationIds && (
+                  <FormHelperText>{errors.operationIds.message}</FormHelperText>
                 )}
               </FormControl>
             )}
@@ -557,7 +572,7 @@ const FlightOrderForm: React.FC = () => {
 
           {/* Estimated route distance */}
           <Controller
-            name="estimatedRouteDistance"
+            name="estimatedRouteLengthKm"
             control={control}
             render={({ field }) => (
               <TextField
@@ -565,22 +580,22 @@ const FlightOrderForm: React.FC = () => {
                 onChange={(e) => field.onChange(Number(e.target.value))}
                 label="Szacowana długość trasy (km)"
                 type="number"
-                error={!!errors.estimatedRouteDistance}
-                helperText={errors.estimatedRouteDistance?.message}
+                error={!!errors.estimatedRouteLengthKm}
+                helperText={errors.estimatedRouteLengthKm?.message}
                 fullWidth
                 disabled={readOnly}
               />
             )}
           />
 
-          {/* Actual start/landing - only shown when status >= 4 */}
+          {/* Actual start/landing - only shown for certain statuses */}
           {showActualFields && (
             <>
               <Divider />
               <Typography variant="subtitle1">Dane rzeczywiste</Typography>
 
               <Controller
-                name="actualStartDateTime"
+                name="actualStartTime"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -588,8 +603,8 @@ const FlightOrderForm: React.FC = () => {
                     label="Rzeczywista data startu"
                     type="datetime-local"
                     InputLabelProps={{ shrink: true }}
-                    error={!!errors.actualStartDateTime}
-                    helperText={errors.actualStartDateTime?.message}
+                    error={!!errors.actualStartTime}
+                    helperText={errors.actualStartTime?.message}
                     fullWidth
                     disabled={readOnly}
                   />
@@ -597,7 +612,7 @@ const FlightOrderForm: React.FC = () => {
               />
 
               <Controller
-                name="actualLandingDateTime"
+                name="actualEndTime"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -605,8 +620,8 @@ const FlightOrderForm: React.FC = () => {
                     label="Rzeczywista data lądowania"
                     type="datetime-local"
                     InputLabelProps={{ shrink: true }}
-                    error={!!errors.actualLandingDateTime}
-                    helperText={errors.actualLandingDateTime?.message}
+                    error={!!errors.actualEndTime}
+                    helperText={errors.actualEndTime?.message}
                     fullWidth
                     disabled={readOnly}
                   />

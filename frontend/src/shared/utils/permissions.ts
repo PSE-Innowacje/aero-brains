@@ -9,38 +9,38 @@ interface MenuPermission {
 
 export const menuPermissions: Record<string, MenuPermission> = {
   administration: {
-    roles: ['admin', 'supervisor', 'pilot'],
+    roles: ['ADMIN', 'SUPERVISOR', 'PILOT'],
     access: {
-      admin: 'full',
-      planner: 'none',
-      supervisor: 'readonly',
-      pilot: 'readonly',
+      ADMIN: 'full',
+      PLANNER: 'none',
+      SUPERVISOR: 'readonly',
+      PILOT: 'readonly',
     },
   },
   operations: {
-    roles: ['admin', 'planner', 'supervisor', 'pilot'],
+    roles: ['ADMIN', 'PLANNER', 'SUPERVISOR', 'PILOT'],
     access: {
-      admin: 'readonly',
-      planner: 'full',
-      supervisor: 'full',
-      pilot: 'readonly',
+      ADMIN: 'readonly',
+      PLANNER: 'full',
+      SUPERVISOR: 'full',
+      PILOT: 'readonly',
     },
   },
   flightOrders: {
-    roles: ['admin', 'supervisor', 'pilot'],
+    roles: ['ADMIN', 'SUPERVISOR', 'PILOT'],
     access: {
-      admin: 'readonly',
-      planner: 'none',
-      supervisor: 'full',
-      pilot: 'full',
+      ADMIN: 'readonly',
+      PLANNER: 'none',
+      SUPERVISOR: 'full',
+      PILOT: 'full',
     },
   },
 };
 
 /** Status codes in which a given role can edit an operation */
-export const operationEditableStatuses: Record<string, number[]> = {
-  planner: [1, 2, 3, 4, 5],
-  supervisor: [1, 2, 3, 4, 5, 6, 7],
+export const operationEditableStatuses: Record<string, string[]> = {
+  PLANNER: ['SUBMITTED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED'],
+  SUPERVISOR: ['SUBMITTED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED', 'COMPLETED', 'CANCELLED'],
 };
 
 /** Fields that a planner cannot modify on an operation */
@@ -48,7 +48,7 @@ export const plannerBlockedFields: string[] = [
   'plannedDateFrom',
   'plannedDateTo',
   'status',
-  'postRealizationNotes',
+  'postCompletionNotes',
 ];
 
 /**
@@ -72,7 +72,7 @@ export const canEdit = (role: UserRole, menuKey: string): boolean => {
 /**
  * Check if a role can edit an operation given the current status code.
  */
-export const canEditOperation = (role: UserRole, statusCode: number): boolean => {
+export const canEditOperation = (role: UserRole, statusCode: string): boolean => {
   const allowed = operationEditableStatuses[role];
   if (!allowed) return false;
   return allowed.includes(statusCode);

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Button } from '@mui/material';
-import type { FlightOrder, FlightOrderStatusCode } from '../../api/types';
+import type { FlightOrder, FlightOrderStatus } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 
 interface FlightOrderStatusActionsProps {
   flightOrder: FlightOrder;
-  onStatusChange: (newStatus: FlightOrderStatusCode) => void;
+  onStatusChange: (newStatus: FlightOrderStatus) => void;
 }
 
 const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
@@ -18,14 +18,14 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
 
   const buttons: React.ReactNode[] = [];
 
-  // Supervisor actions when status = 2 (Przekazane do akceptacji)
-  if (role === 'supervisor' && status === 2) {
+  // Supervisor actions when status = PENDING_APPROVAL (Przekazane do akceptacji)
+  if (role === 'SUPERVISOR' && status === 'PENDING_APPROVAL') {
     buttons.push(
       <Button
         key="reject"
         variant="contained"
         color="error"
-        onClick={() => onStatusChange(3)}
+        onClick={() => onStatusChange('REJECTED')}
       >
         Odrzuć
       </Button>,
@@ -33,21 +33,21 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
         key="accept"
         variant="contained"
         color="success"
-        onClick={() => onStatusChange(4)}
+        onClick={() => onStatusChange('ACCEPTED')}
       >
         Zaakceptuj
       </Button>,
     );
   }
 
-  // Pilot actions when status = 4 (Zaakceptowane)
-  if (role === 'pilot' && status === 4) {
+  // Pilot actions when status = ACCEPTED (Zaakceptowane)
+  if (role === 'PILOT' && status === 'ACCEPTED') {
     buttons.push(
       <Button
         key="partial"
         variant="contained"
         color="warning"
-        onClick={() => onStatusChange(5)}
+        onClick={() => onStatusChange('PARTIALLY_COMPLETED')}
       >
         Zrealizowane w części
       </Button>,
@@ -55,7 +55,7 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
         key="full"
         variant="contained"
         color="success"
-        onClick={() => onStatusChange(6)}
+        onClick={() => onStatusChange('COMPLETED')}
       >
         Zrealizowane w całości
       </Button>,
@@ -63,7 +63,7 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
         key="not-done"
         variant="contained"
         color="inherit"
-        onClick={() => onStatusChange(7)}
+        onClick={() => onStatusChange('NOT_COMPLETED')}
       >
         Nie zrealizowane
       </Button>,

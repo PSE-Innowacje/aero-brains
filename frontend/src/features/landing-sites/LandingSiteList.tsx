@@ -16,18 +16,18 @@ const columns: GridColDef[] = [
     minWidth: 200,
   },
   {
-    field: 'lat',
+    field: 'latitude',
     headerName: 'Szerokość',
     width: 140,
-    valueGetter: (_value: unknown, row: { coordinates?: { lat: number } }) =>
-      row.coordinates?.lat?.toFixed(4) ?? '',
+    valueGetter: (_value: unknown, row: { latitude?: number }) =>
+      row.latitude?.toFixed(4) ?? '',
   },
   {
-    field: 'lng',
+    field: 'longitude',
     headerName: 'Długość',
     width: 140,
-    valueGetter: (_value: unknown, row: { coordinates?: { lng: number } }) =>
-      row.coordinates?.lng?.toFixed(4) ?? '',
+    valueGetter: (_value: unknown, row: { longitude?: number }) =>
+      row.longitude?.toFixed(4) ?? '',
   },
 ];
 

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Button } from '@mui/material';
-import type { Operation, OperationStatusCode } from '../../api/types';
+import type { Operation, OperationStatus } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 
 interface OperationStatusActionsProps {
   operation: Operation;
-  onStatusChange: (newStatus: OperationStatusCode) => void;
+  onStatusChange: (newStatus: OperationStatus) => void;
 }
 
 const OperationStatusActions: React.FC<OperationStatusActionsProps> = ({
@@ -18,13 +18,13 @@ const OperationStatusActions: React.FC<OperationStatusActionsProps> = ({
 
   const buttons: React.ReactNode[] = [];
 
-  if (role === 'supervisor' && status === 1) {
+  if (role === 'SUPERVISOR' && status === 'SUBMITTED') {
     buttons.push(
       <Button
         key="reject"
         variant="contained"
         color="error"
-        onClick={() => onStatusChange(2)}
+        onClick={() => onStatusChange('REJECTED')}
       >
         Odrzuć
       </Button>,
@@ -32,20 +32,20 @@ const OperationStatusActions: React.FC<OperationStatusActionsProps> = ({
         key="confirm"
         variant="contained"
         color="success"
-        onClick={() => onStatusChange(3)}
+        onClick={() => onStatusChange('CONFIRMED')}
       >
         Potwierdź do planu
       </Button>,
     );
   }
 
-  if (role === 'planner' && [1, 3, 4].includes(status)) {
+  if (role === 'PLANNER' && ['SUBMITTED', 'CONFIRMED', 'SCHEDULED'].includes(status)) {
     buttons.push(
       <Button
         key="resign"
         variant="contained"
         color="inherit"
-        onClick={() => onStatusChange(7)}
+        onClick={() => onStatusChange('CANCELLED')}
       >
         Rezygnuj
       </Button>,

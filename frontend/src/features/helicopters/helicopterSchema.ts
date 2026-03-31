@@ -6,7 +6,7 @@ export const helicopterSchema = z
       .string()
       .min(1, 'Numer rejestracyjny jest wymagany')
       .max(30, 'Maksymalnie 30 znaków'),
-    type: z
+    helicopterType: z
       .string()
       .min(1, 'Typ jest wymagany')
       .max(100, 'Maksymalnie 100 znaków'),
@@ -25,9 +25,9 @@ export const helicopterSchema = z
       .int('Musi być liczbą całkowitą')
       .min(1, 'Minimum 1 kg')
       .max(1000, 'Maksimum 1000 kg'),
-    status: z.enum(['active', 'inactive']),
+    status: z.string(),
     inspectionExpiryDate: z.string().optional().or(z.literal('')),
-    rangeWithoutLanding: z
+    rangeKm: z
       .number({ error: 'Wymagana liczba całkowita' })
       .int('Musi być liczbą całkowitą')
       .min(1, 'Minimum 1 km')
@@ -35,7 +35,7 @@ export const helicopterSchema = z
   })
   .refine(
     (data) => {
-      if (data.status === 'active') {
+      if (data.status === 'ACTIVE') {
         return !!data.inspectionExpiryDate;
       }
       return true;

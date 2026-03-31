@@ -17,7 +17,7 @@ const columns: GridColDef[] = [
     minWidth: 150,
   },
   {
-    field: 'type',
+    field: 'helicopterType',
     headerName: 'Typ',
     flex: 1,
     minWidth: 150,
@@ -27,7 +27,7 @@ const columns: GridColDef[] = [
     headerName: 'Status',
     width: 140,
     renderCell: (params) => {
-      const isActive = params.value === 'active';
+      const isActive = params.value === 'ACTIVE';
       return (
         <StatusBadge
           statusCode={isActive ? 3 : 7}
@@ -37,7 +37,7 @@ const columns: GridColDef[] = [
     },
     sortComparator: (v1, v2) => {
       if (v1 === v2) return 0;
-      return v1 === 'active' ? -1 : 1;
+      return v1 === 'ACTIVE' ? -1 : 1;
     },
   },
 ];

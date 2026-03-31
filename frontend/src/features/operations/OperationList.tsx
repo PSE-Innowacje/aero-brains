@@ -9,30 +9,30 @@ import { api } from '../../api/client';
 import {
   OPERATION_STATUS_LABELS,
   ACTIVITY_TYPE_LABELS,
-  type OperationStatusCode,
-  type ActivityType,
+  type OperationStatus,
+  type ActivityTypeEntry,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
 
 const columns: GridColDef[] = [
   {
-    field: 'operationNumber',
+    field: 'id',
     headerName: 'Nr operacji',
     width: 150,
   },
   {
-    field: 'orderNumber',
+    field: 'orderProjectNumber',
     headerName: 'Nr zlecenia',
     width: 150,
   },
   {
-    field: 'activityTypes',
+    field: 'activities',
     headerName: 'Rodzaj czynności',
     flex: 1,
     minWidth: 200,
-    valueFormatter: (value: ActivityType[]) =>
-      value?.map((t) => ACTIVITY_TYPE_LABELS[t] ?? t).join(', ') ?? '',
+    valueFormatter: (value: ActivityTypeEntry[]) =>
+      value?.map((t) => ACTIVITY_TYPE_LABELS[t.activityType as keyof typeof ACTIVITY_TYPE_LABELS] ?? t.activityType).join(', ') ?? '',
   },
   {
     field: 'proposedDateFrom',
@@ -60,8 +60,8 @@ const columns: GridColDef[] = [
     width: 180,
     renderCell: (params) => (
       <StatusBadge
-        statusCode={params.value as number}
-        label={OPERATION_STATUS_LABELS[params.value as OperationStatusCode] ?? ''}
+        statusCode={params.value as string}
+        label={OPERATION_STATUS_LABELS[params.value as OperationStatus] ?? ''}
       />
     ),
   },
@@ -102,7 +102,7 @@ const OperationList: React.FC = () => {
         onRowClick={handleRowClick}
         defaultSortField="plannedDateFrom"
         defaultSortDirection="asc"
-        initialFilter={{ field: 'status', operator: 'equals', value: '3' }}
+        initialFilter={{ field: 'status', operator: 'equals', value: 'CONFIRMED' }}
       />
     </Box>
   );

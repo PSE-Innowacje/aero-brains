@@ -9,8 +9,8 @@ import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
 
 const ROLE_LABELS: Record<string, string> = {
-  pilot: 'Pilot',
-  observer: 'Obserwator',
+  PILOT: 'Pilot',
+  OBSERVER: 'Obserwator',
 };
 
 const columns: GridColDef[] = [

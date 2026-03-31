@@ -24,23 +24,23 @@ const FlightOrderMap: React.FC<FlightOrderMapProps> = ({
   const markers = [];
   if (startSite) {
     markers.push({
-      lat: startSite.coordinates.lat,
-      lng: startSite.coordinates.lng,
+      lat: startSite.latitude,
+      lng: startSite.longitude,
       label: `Start: ${startSite.name}`,
     });
   }
   if (endSite) {
     markers.push({
-      lat: endSite.coordinates.lat,
-      lng: endSite.coordinates.lng,
+      lat: endSite.latitude,
+      lng: endSite.longitude,
       label: `Lądowanie: ${endSite.name}`,
     });
   }
 
   const center: [number, number] = startSite
-    ? [startSite.coordinates.lat, startSite.coordinates.lng]
+    ? [startSite.latitude, startSite.longitude]
     : endSite
-      ? [endSite.coordinates.lat, endSite.coordinates.lng]
+      ? [endSite.latitude, endSite.longitude]
       : hasPoints
         ? [operationPoints![0].lat, operationPoints![0].lng]
         : [52.0, 19.5];

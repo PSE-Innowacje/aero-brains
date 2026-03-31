@@ -25,14 +25,13 @@ import { operationSchema, type OperationFormData } from './operationSchema';
 import OperationMap from './OperationMap';
 import OperationStatusActions from './OperationStatusActions';
 import KmlUpload from './KmlUpload';
-import type { KmlPoint } from '../../shared/utils/kml';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
   OPERATION_STATUS_LABELS,
   ACTIVITY_TYPE_LABELS,
   type ActivityType,
-  type OperationStatusCode,
+  type OperationStatus,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -54,8 +53,33 @@ const OperationForm: React.FC = () => {
   const { user } = useAuth();
   const role = user?.role;
 
-  const [kmlPoints, setKmlPoints] = useState<KmlPoint[]>([]);
+  const [geojsonContent, setGeojsonContent] = useState<string>('');
   const [kmlFileName, setKmlFileName] = useState<string>('');
+
+  // Parse geojsonContent into points for the map
+  const mapPoints = (() => {
+    if (!geojsonContent) return [];
+    try {
+      const geojson = JSON.parse(geojsonContent);
+      const points: Array<{ lat: number; lng: number }> = [];
+      if (geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)) {
+        for (const feature of geojson.features) {
+          if (feature.geometry?.type === 'Point' && Array.isArray(feature.geometry.coordinates)) {
+            points.push({ lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] });
+          }
+        }
+      } else if (geojson.type === 'Feature' && geojson.geometry?.type === 'Point') {
+        points.push({ lat: geojson.geometry.coordinates[1], lng: geojson.geometry.coordinates[0] });
+      } else if (geojson.type === 'LineString' && Array.isArray(geojson.coordinates)) {
+        for (const coord of geojson.coordinates) {
+          points.push({ lat: coord[1], lng: coord[0] });
+        }
+      }
+      return points;
+    } catch {
+      return [];
+    }
+  })();
 
   const { data: operation, isLoading } = useQuery({
     queryKey: ['operations', operationId],
@@ -70,7 +94,7 @@ const OperationForm: React.FC = () => {
 
   const isFieldDisabled = (fieldName: string): boolean => {
     if (readOnly) return true;
-    if (role === 'planner' && plannerBlockedFields.includes(fieldName)) return true;
+    if (role === 'PLANNER' && plannerBlockedFields.includes(fieldName)) return true;
     return false;
   };
 
@@ -83,35 +107,35 @@ const OperationForm: React.FC = () => {
   } = useForm<OperationFormData>({
     resolver: zodResolver(operationSchema),
     defaultValues: {
-      orderNumber: '',
+      orderProjectNumber: '',
       shortDescription: '',
       proposedDateFrom: '',
       proposedDateTo: '',
-      activityTypes: [],
+      activities: [],
       additionalInfo: '',
-      routeDistanceKm: 0,
+      routeLengthKm: 0,
       plannedDateFrom: '',
       plannedDateTo: '',
-      postRealizationNotes: '',
+      postCompletionNotes: '',
     },
   });
 
   useEffect(() => {
     if (operation) {
       reset({
-        orderNumber: operation.orderNumber,
+        orderProjectNumber: operation.orderProjectNumber,
         shortDescription: operation.shortDescription,
         proposedDateFrom: operation.proposedDateFrom ?? '',
         proposedDateTo: operation.proposedDateTo ?? '',
-        activityTypes: operation.activityTypes,
+        activities: operation.activities,
         additionalInfo: operation.additionalInfo ?? '',
-        routeDistanceKm: operation.routeDistanceKm,
+        routeLengthKm: operation.routeLengthKm,
         plannedDateFrom: operation.plannedDateFrom ?? '',
         plannedDateTo: operation.plannedDateTo ?? '',
-        postRealizationNotes: operation.postRealizationNotes ?? '',
+        postCompletionNotes: operation.postCompletionNotes ?? '',
       });
-      if (operation.kmlPoints) {
-        setKmlPoints(operation.kmlPoints);
+      if (operation.geojsonContent) {
+        setGeojsonContent(operation.geojsonContent);
       }
       if (operation.kmlFileName) {
         setKmlFileName(operation.kmlFileName);
@@ -128,17 +152,15 @@ const OperationForm: React.FC = () => {
         additionalInfo: data.additionalInfo || undefined,
         plannedDateFrom: data.plannedDateFrom || undefined,
         plannedDateTo: data.plannedDateTo || undefined,
-        postRealizationNotes: data.postRealizationNotes || undefined,
-        kmlPoints: kmlPoints.length > 0 ? kmlPoints : undefined,
+        postCompletionNotes: data.postCompletionNotes || undefined,
+        geojsonContent: geojsonContent || undefined,
         kmlFileName: kmlFileName || undefined,
       };
       if (isNew) {
         return api.operations.create({
           ...payload,
-          status: 1 as OperationStatusCode,
-          comments: [],
-          createdBy: user?.email ?? '',
-          linkedFlightOrderIds: [],
+          status: 'SUBMITTED' as OperationStatus,
+          createdByEmail: user?.email ?? '',
         });
       }
       return api.operations.update(operationId!, payload);
@@ -150,7 +172,7 @@ const OperationForm: React.FC = () => {
   });
 
   const statusMutation = useMutation({
-    mutationFn: (newStatus: OperationStatusCode) =>
+    mutationFn: (newStatus: OperationStatus) =>
       api.operations.updateStatus(operationId!, newStatus),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
@@ -162,7 +184,7 @@ const OperationForm: React.FC = () => {
     saveMutation.mutate(data);
   };
 
-  const handleStatusChange = (newStatus: OperationStatusCode) => {
+  const handleStatusChange = (newStatus: OperationStatus) => {
     statusMutation.mutate(newStatus);
   };
 
@@ -180,7 +202,7 @@ const OperationForm: React.FC = () => {
         Powrót do listy
       </Button>
       <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowa operacja' : `Operacja ${operation?.operationNumber ?? ''}`}
+        {isNew ? 'Nowa operacja' : `Operacja #${operation?.id ?? ''}`}
       </Typography>
 
       {operation && (
@@ -195,16 +217,16 @@ const OperationForm: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
-            name="orderNumber"
+            name="orderProjectNumber"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
                 label="Numer zlecenia"
-                error={!!errors.orderNumber}
-                helperText={errors.orderNumber?.message}
+                error={!!errors.orderProjectNumber}
+                helperText={errors.orderProjectNumber?.message}
                 fullWidth
-                disabled={isFieldDisabled('orderNumber')}
+                disabled={isFieldDisabled('orderProjectNumber')}
               />
             )}
           />
@@ -259,19 +281,27 @@ const OperationForm: React.FC = () => {
           />
 
           <Controller
-            name="activityTypes"
+            name="activities"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.activityTypes} disabled={isFieldDisabled('activityTypes')}>
+              <FormControl fullWidth error={!!errors.activities} disabled={isFieldDisabled('activities')}>
                 <InputLabel>Rodzaj czynności</InputLabel>
                 <Select
-                  {...field}
                   multiple
                   label="Rodzaj czynności"
+                  value={field.value.map((a) => a.activityType)}
+                  onChange={(e) => {
+                    const selected = e.target.value as string[];
+                    const newActivities = selected.map((activityType) => {
+                      const existing = field.value.find((a) => a.activityType === activityType);
+                      return existing ?? { activityType };
+                    });
+                    field.onChange(newActivities);
+                  }}
                   renderValue={(selected) => (
                     <Box display="flex" flexWrap="wrap" gap={0.5}>
-                      {(selected as ActivityType[]).map((value) => (
-                        <Chip key={value} label={ACTIVITY_TYPE_LABELS[value]} size="small" />
+                      {(selected as string[]).map((value) => (
+                        <Chip key={value} label={ACTIVITY_TYPE_LABELS[value as ActivityType] ?? value} size="small" />
                       ))}
                     </Box>
                   )}
@@ -282,8 +312,8 @@ const OperationForm: React.FC = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.activityTypes && (
-                  <FormHelperText>{errors.activityTypes.message}</FormHelperText>
+                {errors.activities && (
+                  <FormHelperText>{errors.activities.message}</FormHelperText>
                 )}
               </FormControl>
             )}
@@ -308,10 +338,19 @@ const OperationForm: React.FC = () => {
 
           {/* KML file upload */}
           <KmlUpload
-            points={kmlPoints}
+            points={mapPoints}
             onPointsChange={(points, distanceKm) => {
-              setKmlPoints(points);
-              setValue('routeDistanceKm', distanceKm);
+              // Convert points back to GeoJSON for storage
+              const geojson = {
+                type: 'FeatureCollection',
+                features: points.map((p) => ({
+                  type: 'Feature',
+                  geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+                  properties: {},
+                })),
+              };
+              setGeojsonContent(JSON.stringify(geojson));
+              setValue('routeLengthKm', distanceKm);
             }}
             disabled={readOnly}
             fileName={kmlFileName}
@@ -319,7 +358,7 @@ const OperationForm: React.FC = () => {
           />
 
           <Controller
-            name="routeDistanceKm"
+            name="routeLengthKm"
             control={control}
             render={({ field }) => (
               <TextField
@@ -327,10 +366,10 @@ const OperationForm: React.FC = () => {
                 onChange={(e) => field.onChange(Number(e.target.value))}
                 label="Dystans trasy (km)"
                 type="number"
-                error={!!errors.routeDistanceKm}
-                helperText={errors.routeDistanceKm?.message}
+                error={!!errors.routeLengthKm}
+                helperText={errors.routeLengthKm?.message}
                 fullWidth
-                disabled={isFieldDisabled('routeDistanceKm')}
+                disabled={isFieldDisabled('routeLengthKm')}
               />
             )}
           />
@@ -370,7 +409,7 @@ const OperationForm: React.FC = () => {
           />
 
           <Controller
-            name="postRealizationNotes"
+            name="postCompletionNotes"
             control={control}
             render={({ field }) => (
               <TextField
@@ -378,19 +417,19 @@ const OperationForm: React.FC = () => {
                 label="Uwagi porealizacyjne"
                 multiline
                 rows={3}
-                error={!!errors.postRealizationNotes}
-                helperText={errors.postRealizationNotes?.message}
+                error={!!errors.postCompletionNotes}
+                helperText={errors.postCompletionNotes?.message}
                 fullWidth
-                disabled={isFieldDisabled('postRealizationNotes')}
+                disabled={isFieldDisabled('postCompletionNotes')}
               />
             )}
           />
 
-          {/* Contact persons - read-only */}
-          {operation?.contactPersons && operation.contactPersons.length > 0 && (
+          {/* Contact emails - read-only */}
+          {operation?.contactEmails && (
             <TextField
               label="Osoby kontaktowe"
-              value={operation.contactPersons.join(', ')}
+              value={operation.contactEmails}
               fullWidth
               disabled
             />
@@ -407,8 +446,8 @@ const OperationForm: React.FC = () => {
                 {operation.comments.map((comment, idx) => (
                   <ListItem key={idx}>
                     <ListItemText
-                      primary={comment.text}
-                      secondary={`${comment.author} — ${comment.date}`}
+                      primary={comment.content}
+                      secondary={`${comment.authorEmail} — ${comment.createdAt}`}
                     />
                   </ListItem>
                 ))}
@@ -446,7 +485,7 @@ const OperationForm: React.FC = () => {
         <Typography variant="h6" mb={1}>
           Mapa trasy
         </Typography>
-        <OperationMap points={kmlPoints} />
+        <OperationMap points={mapPoints} />
       </Box>
 
       {/* Status actions */}

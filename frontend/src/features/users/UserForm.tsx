@@ -18,7 +18,6 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { userSchema, type UserFormData } from './userSchema';
 import { api } from '../../api/client';
-import type { UserRole } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
 
@@ -49,7 +48,8 @@ const UserForm: React.FC = () => {
       firstName: '',
       lastName: '',
       email: '',
-      role: 'pilot',
+      role: 'PILOT',
+      password: '',
     },
   });
 
@@ -59,21 +59,28 @@ const UserForm: React.FC = () => {
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
-        role: userData.role,
+        role: userData.role as UserFormData['role'],
       });
     }
   }, [userData, reset]);
 
   const saveMutation = useMutation({
     mutationFn: (data: UserFormData) => {
-      const payload = {
-        ...data,
-        role: data.role as UserRole,
-      };
       if (isNew) {
-        return api.users.create(payload);
+        return api.users.create({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          role: data.role,
+          password: data.password || '',
+        });
       }
-      return api.users.update(userId!, payload);
+      return api.users.update(userId!, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        role: data.role,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -148,6 +155,24 @@ const UserForm: React.FC = () => {
             )}
           />
 
+          {isNew && (
+            <Controller
+              name="password"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Hasło"
+                  type="password"
+                  error={!!errors.password}
+                  helperText={errors.password?.message}
+                  fullWidth
+                  disabled={readOnly}
+                />
+              )}
+            />
+          )}
+
           <Controller
             name="role"
             control={control}
@@ -155,10 +180,10 @@ const UserForm: React.FC = () => {
               <FormControl fullWidth error={!!errors.role} disabled={readOnly}>
                 <InputLabel>Rola</InputLabel>
                 <Select {...field} label="Rola">
-                  <MenuItem value="admin">Administrator</MenuItem>
-                  <MenuItem value="planner">Osoba planująca</MenuItem>
-                  <MenuItem value="supervisor">Osoba nadzorująca</MenuItem>
-                  <MenuItem value="pilot">Pilot</MenuItem>
+                  <MenuItem value="ADMIN">Administrator</MenuItem>
+                  <MenuItem value="PLANNER">Osoba planująca</MenuItem>
+                  <MenuItem value="SUPERVISOR">Osoba nadzorująca</MenuItem>
+                  <MenuItem value="PILOT">Pilot</MenuItem>
                 </Select>
                 {errors.role && (
                   <FormHelperText>{errors.role.message}</FormHelperText>

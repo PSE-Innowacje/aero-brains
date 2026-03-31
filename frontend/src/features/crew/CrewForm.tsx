@@ -18,7 +18,7 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { crewSchema, type CrewFormData } from './crewSchema';
 import { api } from '../../api/client';
-import type { CrewRole } from '../../api/types';
+
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
 
@@ -51,7 +51,7 @@ const CrewForm: React.FC = () => {
       lastName: '',
       email: '',
       weight: 70,
-      role: 'pilot',
+      role: 'PILOT',
       pilotLicenseNumber: '',
       licenseExpiryDate: '',
       trainingExpiryDate: '',
@@ -79,7 +79,7 @@ const CrewForm: React.FC = () => {
     mutationFn: (data: CrewFormData) => {
       const payload = {
         ...data,
-        role: data.role as CrewRole,
+        role: data.role,
         pilotLicenseNumber: data.pilotLicenseNumber || undefined,
         licenseExpiryDate: data.licenseExpiryDate || undefined,
       };
@@ -185,8 +185,8 @@ const CrewForm: React.FC = () => {
               <FormControl fullWidth error={!!errors.role} disabled={readOnly}>
                 <InputLabel>Rola</InputLabel>
                 <Select {...field} label="Rola">
-                  <MenuItem value="pilot">Pilot</MenuItem>
-                  <MenuItem value="observer">Obserwator</MenuItem>
+                  <MenuItem value="PILOT">Pilot</MenuItem>
+                  <MenuItem value="OBSERVER">Obserwator</MenuItem>
                 </Select>
                 {errors.role && (
                   <FormHelperText>{errors.role.message}</FormHelperText>
@@ -195,7 +195,7 @@ const CrewForm: React.FC = () => {
             )}
           />
 
-          {roleValue === 'pilot' && (
+          {roleValue === 'PILOT' && (
             <>
               <Controller
                 name="pilotLicenseNumber"

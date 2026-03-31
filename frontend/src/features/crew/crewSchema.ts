@@ -22,7 +22,7 @@ export const crewSchema = z
       .int('Musi być liczbą całkowitą')
       .min(30, 'Minimum 30 kg')
       .max(200, 'Maksimum 200 kg'),
-    role: z.enum(['pilot', 'observer']),
+    role: z.string(),
     pilotLicenseNumber: z
       .string()
       .max(30, 'Maksymalnie 30 znaków')
@@ -33,7 +33,7 @@ export const crewSchema = z
   })
   .refine(
     (data) => {
-      if (data.role === 'pilot') {
+      if (data.role === 'PILOT') {
         return !!data.pilotLicenseNumber;
       }
       return true;
@@ -45,7 +45,7 @@ export const crewSchema = z
   )
   .refine(
     (data) => {
-      if (data.role === 'pilot') {
+      if (data.role === 'PILOT') {
         return !!data.licenseExpiryDate;
       }
       return true;
