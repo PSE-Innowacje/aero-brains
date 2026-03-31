@@ -10,7 +10,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.SequenceGenerator
 import jakarta.persistence.Table
-import java.time.Instant
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "operation_change_log")
@@ -37,5 +37,5 @@ class OperationChangeLog(
     val changedByEmail: String,
 
     @Column(name = "changed_at", nullable = false)
-    val changedAt: Instant = Instant.now()
+    val changedAt: LocalDateTime = LocalDateTime.now()
 )

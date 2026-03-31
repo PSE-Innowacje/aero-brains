@@ -19,7 +19,7 @@ CREATE TABLE flight_orders (
     CONSTRAINT fk_fo_helicopter FOREIGN KEY (helicopter_id) REFERENCES helicopters(id),
     CONSTRAINT fk_fo_departure FOREIGN KEY (departure_site_id) REFERENCES landing_sites(id),
     CONSTRAINT fk_fo_arrival FOREIGN KEY (arrival_site_id) REFERENCES landing_sites(id),
-    CONSTRAINT chk_fo_status CHECK (status IN (
+    CONSTRAINT chk_ford_status CHECK (status IN (
         'INTRODUCED', 'SUBMITTED', 'REJECTED', 'ACCEPTED',
         'PARTIALLY_COMPLETED', 'COMPLETED', 'NOT_COMPLETED'
     ))

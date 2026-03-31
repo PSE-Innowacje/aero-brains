@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import pl.aerobrains.operations.domain.ActivityType
 import pl.aerobrains.operations.domain.OperationStatus
-import java.time.Instant
+import java.time.LocalDateTime
 import java.time.LocalDate
 
 data class ActivityTypeEntry(
@@ -106,8 +106,8 @@ data class FlightOperationResponse(
     val postCompletionNotes: String?,
     val comments: List<CommentResponse>,
     val changeLog: List<ChangeLogResponse>,
-    val createdAt: Instant,
-    val updatedAt: Instant
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 )
 
 data class FlightOperationListItem(
@@ -125,7 +125,7 @@ data class CommentResponse(
     val id: Long,
     val content: String,
     val authorEmail: String,
-    val createdAt: Instant
+    val createdAt: LocalDateTime
 )
 
 data class ChangeLogResponse(
@@ -134,5 +134,5 @@ data class ChangeLogResponse(
     val oldValue: String?,
     val newValue: String?,
     val changedByEmail: String,
-    val changedAt: Instant
+    val changedAt: LocalDateTime
 )
