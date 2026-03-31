@@ -9,7 +9,6 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OrderBy
 import jakarta.persistence.SequenceGenerator
@@ -24,7 +23,7 @@ class FlightOperation(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "flight_operation_seq")
     @SequenceGenerator(name = "flight_operation_seq", sequenceName = "FLIGHT_OPERATIONS_SEQ", allocationSize = 1)
-    override val id: Long = 0,
+    val id: Long = 0,
 
     @Column(name = "order_project_number", nullable = false, length = 30)
     var orderProjectNumber: String,

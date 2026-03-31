@@ -10,9 +10,9 @@ interface FlightOrderMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "pilotId", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "crewWeight", ignore = true)
+    @Mapping(target = "pilotId", constant = "0L")
+    @Mapping(target = "status", expression = "java(pl.aerobrains.orders.domain.OrderStatus.INTRODUCED)")
+    @Mapping(target = "crewWeight", constant = "0")
     @Mapping(target = "actualStartTime", ignore = true)
     @Mapping(target = "actualEndTime", ignore = true)
     fun toEntity(request: CreateFlightOrderRequest): FlightOrder

@@ -23,7 +23,7 @@ class FlightOrder(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "flight_order_seq")
     @SequenceGenerator(name = "flight_order_seq", sequenceName = "FLIGHT_ORDERS_SEQ", allocationSize = 1)
-    override val id: Long = 0,
+    val id: Long = 0,
 
     @Column(name = "planned_start_time", nullable = false)
     var plannedStartTime: LocalDateTime,

@@ -18,7 +18,7 @@ class CrewMember(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "crew_member_seq")
     @SequenceGenerator(name = "crew_member_seq", sequenceName = "CREW_MEMBERS_SEQ", allocationSize = 1)
-    override val id: Long = 0,
+    val id: Long = 0,
 
     @Column(name = "first_name", nullable = false, length = 100)
     var firstName: String,

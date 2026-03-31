@@ -162,8 +162,9 @@ class AdminFleetManagementSpec extends BaseIntegrationSpec {
         result.andExpect(status().isBadRequest())
     }
 
-    def "non-admin should not create helicopters"() {
+    def "planner should not create helicopters"() {
         given:
+        def token = plannerToken()
         def request = [
                 registrationNumber: unique("SP-NA"),
                 helicopterType: "Test", maxCrewCount: 2, maxCrewWeight: 200,
@@ -172,28 +173,51 @@ class AdminFleetManagementSpec extends BaseIntegrationSpec {
 
         when:
         def result = mockMvc.perform(
-                post("/api/helicopters").header("Authorization", "Bearer ${token}")
+                post("/api/helicopters").header("Authorization", "Bearer $token")
                         .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
         )
 
         then:
         result.andExpect(status().isForbidden())
-
-        where:
-        token << [plannerToken(), pilotToken()]
     }
 
-    def "supervisor and pilot can read helicopters"() {
+    def "pilot should not create helicopters"() {
+        given:
+        def token = pilotToken()
+        def request = [
+                registrationNumber: unique("SP-NA"),
+                helicopterType: "Test", maxCrewCount: 2, maxCrewWeight: 200,
+                status: "INACTIVE", rangeKm: 300
+        ]
+
         when:
         def result = mockMvc.perform(
-                get("/api/helicopters").header("Authorization", "Bearer ${token}")
+                post("/api/helicopters").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        )
+
+        then:
+        result.andExpect(status().isForbidden())
+    }
+
+    def "supervisor can read helicopters"() {
+        when:
+        def result = mockMvc.perform(
+                get("/api/helicopters").header("Authorization", "Bearer ${supervisorToken()}")
         )
 
         then:
         result.andExpect(status().isOk())
+    }
 
-        where:
-        token << [supervisorToken(), pilotToken()]
+    def "pilot can read helicopters"() {
+        when:
+        def result = mockMvc.perform(
+                get("/api/helicopters").header("Authorization", "Bearer ${pilotToken()}")
+        )
+
+        then:
+        result.andExpect(status().isOk())
     }
 
     // ==================== CREW MEMBERS ====================

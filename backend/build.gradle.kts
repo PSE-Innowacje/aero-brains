@@ -79,6 +79,14 @@ allOpen {
     annotation("jakarta.persistence.Embeddable")
 }
 
+sourceSets {
+    test {
+        groovy {
+            srcDirs("src/test/groovy")
+        }
+    }
+}
+
 tasks.withType<KotlinCompile> {
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")

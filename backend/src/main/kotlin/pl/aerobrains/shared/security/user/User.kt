@@ -18,7 +18,7 @@ class User(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
     @SequenceGenerator(name = "user_seq", sequenceName = "USERS_SEQ", allocationSize = 1)
-    override val id: Long = 0,
+    val id: Long = 0,
 
     @Column(name = "first_name", nullable = false, length = 100)
     var firstName: String,

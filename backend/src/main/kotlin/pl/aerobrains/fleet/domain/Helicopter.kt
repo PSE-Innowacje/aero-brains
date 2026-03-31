@@ -18,7 +18,7 @@ class Helicopter(
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "helicopter_seq")
     @SequenceGenerator(name = "helicopter_seq", sequenceName = "HELICOPTERS_SEQ", allocationSize = 1)
-    override val id: Long = 0,
+    val id: Long = 0,
 
     @Column(name = "registration_number", nullable = false, unique = true, length = 30)
     var registrationNumber: String,
