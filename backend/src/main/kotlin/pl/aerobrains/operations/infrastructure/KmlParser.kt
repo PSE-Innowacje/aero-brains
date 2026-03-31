@@ -1,5 +1,6 @@
 package pl.aerobrains.operations.infrastructure
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
@@ -9,7 +10,9 @@ import javax.xml.parsers.DocumentBuilderFactory
 data class KmlPoint(val latitude: Double, val longitude: Double)
 
 @Component
-class KmlParser {
+class KmlParser(
+    private val objectMapper: ObjectMapper
+) {
 
     fun parsePoints(kmlContent: String): List<KmlPoint> {
         val factory = DocumentBuilderFactory.newInstance()
@@ -25,6 +28,40 @@ class KmlParser {
         }
 
         return points
+    }
+
+    fun toGeoJson(points: List<KmlPoint>): String {
+        val geojson = if (points.size == 1) {
+            mapOf(
+                "type" to "FeatureCollection",
+                "features" to listOf(
+                    mapOf(
+                        "type" to "Feature",
+                        "geometry" to mapOf(
+                            "type" to "Point",
+                            "coordinates" to listOf(points[0].longitude, points[0].latitude)
+                        ),
+                        "properties" to emptyMap<String, Any>()
+                    )
+                )
+            )
+        } else {
+            mapOf(
+                "type" to "FeatureCollection",
+                "features" to listOf(
+                    mapOf(
+                        "type" to "Feature",
+                        "geometry" to mapOf(
+                            "type" to "LineString",
+                            "coordinates" to points.map { listOf(it.longitude, it.latitude) }
+                        ),
+                        "properties" to emptyMap<String, Any>()
+                    )
+                )
+            )
+        }
+
+        return objectMapper.writeValueAsString(geojson)
     }
 
     private fun extractCoordinates(nodeList: NodeList, points: MutableList<KmlPoint>) {

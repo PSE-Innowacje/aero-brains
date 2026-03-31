@@ -9,7 +9,10 @@ import pl.aerobrains.operations.api.FlightOperationListItem
 import pl.aerobrains.operations.api.FlightOperationMapper
 import pl.aerobrains.operations.api.FlightOperationResponse
 import pl.aerobrains.operations.api.UpdateFlightOperationRequest
+import pl.aerobrains.operations.api.ActivityTypeEntry
+import pl.aerobrains.operations.domain.ActivityType
 import pl.aerobrains.operations.domain.FlightOperation
+import pl.aerobrains.operations.domain.OperationActivity
 import pl.aerobrains.operations.domain.OperationStatus
 import pl.aerobrains.operations.infrastructure.FlightOperationRepository
 import pl.aerobrains.operations.infrastructure.FlightOperationSpecifications
@@ -57,9 +60,10 @@ class FlightOperationService(
         operation.createdByEmail = currentUserEmail
         operation.status = OperationStatus.INTRODUCED
 
+        validateAndSetActivities(operation, request.activities)
+
         if (request.kmlContent != null) {
-            val points = kmlParser.parsePoints(request.kmlContent)
-            operation.routeLengthKm = routeCalculationService.calculateRouteLength(points)
+            processKml(operation, request.kmlContent)
         }
 
         return mapper.toResponse(repository.save(operation))
@@ -71,7 +75,7 @@ class FlightOperationService(
 
         operation.orderProjectNumber = request.orderProjectNumber
         operation.shortDescription = request.shortDescription
-        operation.activityTypes = request.activityTypes.toMutableSet()
+        validateAndSetActivities(operation, request.activities)
         operation.additionalInfo = request.additionalInfo
         operation.contactEmails = request.contactEmails
         operation.proposedDateFrom = request.proposedDateFrom
@@ -80,8 +84,7 @@ class FlightOperationService(
         if (request.kmlContent != null) {
             operation.kmlFileName = request.kmlFileName
             operation.kmlContent = request.kmlContent
-            val points = kmlParser.parsePoints(request.kmlContent)
-            operation.routeLengthKm = routeCalculationService.calculateRouteLength(points)
+            processKml(operation, request.kmlContent)
         }
 
         if (currentUserRole == UserRole.SUPERVISOR) {
@@ -148,6 +151,31 @@ class FlightOperationService(
     fun getOperation(id: Long): FlightOperation {
         return repository.findById(id)
             .orElseThrow { EntityNotFoundException("FlightOperation", id) }
+    }
+
+    private fun processKml(operation: FlightOperation, kmlContent: String) {
+        val points = kmlParser.parsePoints(kmlContent)
+        operation.routeLengthKm = routeCalculationService.calculateRouteLength(points)
+        operation.geojsonContent = kmlParser.toGeoJson(points)
+    }
+
+    private fun validateAndSetActivities(operation: FlightOperation, entries: List<ActivityTypeEntry>) {
+        entries.forEach { entry ->
+            if (entry.activityType == ActivityType.OTHER && entry.description.isNullOrBlank()) {
+                throw BusinessRuleViolationException("Description is required for activity type OTHER")
+            }
+        }
+
+        operation.activities.clear()
+        entries.forEach { entry ->
+            operation.activities.add(
+                OperationActivity(
+                    flightOperation = operation,
+                    activityType = entry.activityType,
+                    description = entry.description
+                )
+            )
+        }
     }
 
     private fun validateEditPermission(operation: FlightOperation, role: UserRole) {

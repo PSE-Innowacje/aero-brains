@@ -5,5 +5,6 @@ enum class ActivityType(val label: String) {
     SCAN_3D("Skan 3D"),
     FAULT_LOCATION("Lokalizacja awarii"),
     PHOTOS("Zdjęcia"),
-    PATROL("Patrolowanie")
+    PATROL("Patrolowanie"),
+    OTHER("Inne")
 }

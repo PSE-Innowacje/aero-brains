@@ -1,9 +1,7 @@
 package pl.aerobrains.operations.domain
 
 import jakarta.persistence.CascadeType
-import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
-import jakarta.persistence.ElementCollection
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -33,20 +31,17 @@ class FlightOperation(
     @Column(name = "kml_content", columnDefinition = "CLOB")
     var kmlContent: String? = null,
 
+    @Column(name = "geojson_content", columnDefinition = "CLOB")
+    var geojsonContent: String? = null,
+
     @Column(name = "proposed_date_from")
     var proposedDateFrom: LocalDate? = null,
 
     @Column(name = "proposed_date_to")
     var proposedDateTo: LocalDate? = null,
 
-    @ElementCollection(targetClass = ActivityType::class, fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "flight_operation_activity_types",
-        joinColumns = [JoinColumn(name = "flight_operation_id")]
-    )
-    @Enumerated(EnumType.STRING)
-    @Column(name = "activity_type")
-    var activityTypes: MutableSet<ActivityType> = mutableSetOf(),
+    @OneToMany(mappedBy = "flightOperation", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    val activities: MutableList<OperationActivity> = mutableListOf(),
 
     @Column(name = "additional_info", length = 500)
     var additionalInfo: String? = null,

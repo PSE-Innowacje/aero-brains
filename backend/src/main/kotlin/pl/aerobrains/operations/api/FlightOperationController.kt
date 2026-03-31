@@ -1,7 +1,9 @@
 package pl.aerobrains.operations.api
 
 import jakarta.validation.Valid
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
@@ -55,6 +57,32 @@ class FlightOperationController(
         val email = authentication.name
         val role = extractRole(authentication)
         return ResponseEntity.ok(service.update(id, request, email, role))
+    }
+
+    @GetMapping("/{id}/kml")
+    @PreAuthorize("hasAnyRole('PLANNER', 'SUPERVISOR', 'ADMINISTRATOR', 'PILOT')")
+    fun getKml(@PathVariable id: Long): ResponseEntity<ByteArray> {
+        val operation = service.getOperation(id)
+        val kmlContent = operation.kmlContent
+            ?: return ResponseEntity.noContent().build()
+
+        val fileName = operation.kmlFileName ?: "operation-${operation.id}.kml"
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"$fileName\"")
+            .contentType(MediaType.APPLICATION_XML)
+            .body(kmlContent.toByteArray(Charsets.UTF_8))
+    }
+
+    @GetMapping("/{id}/geojson")
+    @PreAuthorize("hasAnyRole('PLANNER', 'SUPERVISOR', 'ADMINISTRATOR', 'PILOT')")
+    fun getGeoJson(@PathVariable id: Long): ResponseEntity<String> {
+        val operation = service.getOperation(id)
+        val geojson = operation.geojsonContent
+            ?: return ResponseEntity.noContent().build()
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(geojson)
     }
 
     @PostMapping("/{id}/reject")

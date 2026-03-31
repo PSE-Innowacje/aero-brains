@@ -1,12 +1,22 @@
 package pl.aerobrains.operations.api
 
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import pl.aerobrains.operations.domain.ActivityType
 import pl.aerobrains.operations.domain.OperationStatus
 import java.time.Instant
 import java.time.LocalDate
+
+data class ActivityTypeEntry(
+    @field:NotNull
+    val activityType: ActivityType,
+
+    @field:Size(max = 200)
+    val description: String? = null
+)
 
 data class CreateFlightOperationRequest(
     @field:NotBlank
@@ -24,7 +34,8 @@ data class CreateFlightOperationRequest(
     val proposedDateTo: LocalDate? = null,
 
     @field:NotEmpty
-    val activityTypes: Set<ActivityType>,
+    @field:Valid
+    val activities: List<ActivityTypeEntry>,
 
     @field:Size(max = 500)
     val additionalInfo: String? = null,
@@ -49,7 +60,8 @@ data class UpdateFlightOperationRequest(
     val proposedDateTo: LocalDate? = null,
 
     @field:NotEmpty
-    val activityTypes: Set<ActivityType>,
+    @field:Valid
+    val activities: List<ActivityTypeEntry>,
 
     @field:Size(max = 500)
     val additionalInfo: String? = null,
@@ -80,9 +92,10 @@ data class FlightOperationResponse(
     val orderProjectNumber: String,
     val shortDescription: String,
     val kmlFileName: String?,
+    val geojsonContent: String?,
     val proposedDateFrom: LocalDate?,
     val proposedDateTo: LocalDate?,
-    val activityTypes: Set<ActivityType>,
+    val activities: List<ActivityTypeEntry>,
     val additionalInfo: String?,
     val routeLengthKm: Int,
     val plannedDateFrom: LocalDate?,
@@ -100,7 +113,7 @@ data class FlightOperationResponse(
 data class FlightOperationListItem(
     val id: Long,
     val orderProjectNumber: String,
-    val activityTypes: Set<ActivityType>,
+    val activities: List<ActivityTypeEntry>,
     val proposedDateFrom: LocalDate?,
     val proposedDateTo: LocalDate?,
     val plannedDateFrom: LocalDate?,
