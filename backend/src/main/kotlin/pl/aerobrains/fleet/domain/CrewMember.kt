@@ -4,6 +4,9 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
 import jakarta.persistence.SequenceGenerator
 import jakarta.persistence.Table
 import pl.aerobrains.shared.persistence.BaseEntity
@@ -11,8 +14,12 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "crew_members")
-@SequenceGenerator(name = "default_seq", sequenceName = "CREW_MEMBERS_SEQ", allocationSize = 1)
 class CrewMember(
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "crew_member_seq")
+    @SequenceGenerator(name = "crew_member_seq", sequenceName = "CREW_MEMBERS_SEQ", allocationSize = 1)
+    override val id: Long = 0,
+
     @Column(name = "first_name", nullable = false, length = 100)
     var firstName: String,
 

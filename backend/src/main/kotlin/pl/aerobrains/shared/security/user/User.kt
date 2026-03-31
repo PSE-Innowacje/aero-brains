@@ -14,8 +14,12 @@ import pl.aerobrains.shared.security.UserRole
 
 @Entity
 @Table(name = "users")
-@SequenceGenerator(name = "default_seq", sequenceName = "USERS_SEQ", allocationSize = 1)
 class User(
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
+    @SequenceGenerator(name = "user_seq", sequenceName = "USERS_SEQ", allocationSize = 1)
+    override val id: Long = 0,
+
     @Column(name = "first_name", nullable = false, length = 100)
     var firstName: String,
 
