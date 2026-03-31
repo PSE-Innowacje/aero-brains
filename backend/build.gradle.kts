@@ -34,6 +34,7 @@ dependencies {
 
     // Database
     runtimeOnly("com.oracle.database.jdbc:ojdbc11")
+    runtimeOnly("com.h2database:h2")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-oracle")
 
@@ -86,4 +87,17 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.register("generateOpenApiDocs") {
+    dependsOn("test")
+    description = "Generate OpenAPI spec to shared/api/openapi.json (runs via test)"
+    doLast {
+        val specFile = file("../shared/api/openapi.json")
+        if (specFile.exists()) {
+            println("OpenAPI spec generated at: ${specFile.absolutePath}")
+        } else {
+            throw GradleException("OpenAPI spec not found. Make sure OpenApiSpecGeneratorTest ran successfully.")
+        }
+    }
 }

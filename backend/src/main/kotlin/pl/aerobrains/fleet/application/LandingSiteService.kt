@@ -45,7 +45,10 @@ class LandingSiteService(
         }
 
         landingSite.name = request.name
-        landingSite.coordinates = Coordinates(request.latitude, request.longitude)
+        landingSite.coordinates = Coordinates(
+            request.latitude.toBigDecimal(),
+            request.longitude.toBigDecimal()
+        )
 
         return landingSiteMapper.toResponse(landingSiteRepository.save(landingSite))
     }
