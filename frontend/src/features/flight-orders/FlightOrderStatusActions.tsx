@@ -18,6 +18,20 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
 
   const buttons: React.ReactNode[] = [];
 
+  // Pilot action when status = INTRODUCED — submit for supervisor approval
+  if (role === 'PILOT' && status === 'INTRODUCED') {
+    buttons.push(
+      <Button
+        key="submit"
+        variant="contained"
+        color="primary"
+        onClick={() => onStatusChange('SUBMITTED')}
+      >
+        Przekaż do akceptacji
+      </Button>,
+    );
+  }
+
   // Supervisor actions when status = SUBMITTED (Przekazane do akceptacji)
   if (role === 'SUPERVISOR' && status === 'SUBMITTED') {
     buttons.push(
