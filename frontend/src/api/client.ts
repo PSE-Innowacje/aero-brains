@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getGlobalErrorHandler } from '../shared/components/ErrorNotification';
 
 import {
   mockHelicopters,
@@ -41,6 +42,32 @@ http.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Response error interceptor — shows toast notifications
+http.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const showError = getGlobalErrorHandler();
+    if (showError && error.response) {
+      const { status, data } = error.response;
+      // Don't show toast for 401 (redirect to login) or 404 (handled by callers)
+      if (status !== 401 && status !== 404) {
+        showError({
+          status,
+          title: data?.error || `Błąd ${status}`,
+          message: data?.message || error.message || 'Wystąpił nieoczekiwany błąd',
+          path: data?.path || error.config?.url,
+        });
+      }
+    } else if (showError && !error.response) {
+      showError({
+        title: 'Błąd połączenia',
+        message: 'Nie można połączyć się z serwerem. Sprawdź, czy backend jest uruchomiony.',
+      });
+    }
+    return Promise.reject(error);
+  },
+);
 
 // ── Mock helpers (kept for USE_MOCK mode) ──
 const delay = (ms = 200) => new Promise<void>((r) => setTimeout(r, ms));
