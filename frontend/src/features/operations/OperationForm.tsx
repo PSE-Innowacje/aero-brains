@@ -199,6 +199,17 @@ const OperationForm: React.FC = () => {
   };
 
   const handleStatusChange = (newStatus: OperationStatus) => {
+    if (newStatus === 'CONFIRMED') {
+      const values = watch();
+      api.operations.confirm(operationId!, {
+        plannedDateFrom: values.plannedDateFrom || undefined,
+        plannedDateTo: values.plannedDateTo || undefined,
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['operations'] });
+        navigate('/operations');
+      });
+      return;
+    }
     statusMutation.mutate(newStatus);
   };
 
