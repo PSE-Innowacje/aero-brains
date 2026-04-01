@@ -78,9 +78,39 @@ const FlightOrderForm: React.FC = () => {
   );
 
   // Operations with status = CONFIRMED (Potwierdzone do planu)
-  const availableOperations = useMemo(
+  const confirmedOps = useMemo(
     () => allOperations.filter((op) => op.status === 'CONFIRMED'),
     [allOperations],
+  );
+
+  // Fetch full details for confirmed operations to get shortDescription
+  const [opDetails, setOpDetails] = useState<Record<number, { shortDescription?: string }>>({});
+  useEffect(() => {
+    if (confirmedOps.length === 0) return;
+    let cancelled = false;
+    const fetch = async () => {
+      const details: Record<number, { shortDescription?: string }> = {};
+      await Promise.all(
+        confirmedOps.map(async (op) => {
+          try {
+            const full = await api.operations.getById(op.id);
+            if (full) details[op.id] = { shortDescription: full.shortDescription };
+          } catch { /* skip */ }
+        }),
+      );
+      if (!cancelled) setOpDetails(details);
+    };
+    fetch();
+    return () => { cancelled = true; };
+  }, [confirmedOps]);
+
+  // Merge descriptions into available operations
+  const availableOperations = useMemo(
+    () => confirmedOps.map((op) => ({
+      ...op,
+      shortDescription: opDetails[op.id]?.shortDescription ?? (op as any).shortDescription,
+    })),
+    [confirmedOps, opDetails],
   );
 
   // Pilots from crew members
