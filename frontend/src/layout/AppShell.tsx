@@ -248,11 +248,14 @@ const AppShell: React.FC = () => {
               color: 'rgba(255,255,255,0.45)',
               fontSize: 12,
               textTransform: 'none',
-              borderRadius: '7px',
-              px: '10px',
+              borderRadius: '8px',
+              px: '12px',
+              py: '8px',
+              border: '0.5px solid rgba(255,255,255,0.1)',
               '&:hover': {
-                bgcolor: 'rgba(255,255,255,0.07)',
-                color: 'rgba(255,255,255,0.9)',
+                bgcolor: 'rgba(220,38,38,0.18)',
+                color: '#fca5a5',
+                borderColor: 'rgba(220,38,38,0.3)',
               },
             }}
           >
@@ -269,7 +272,7 @@ const AppShell: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          bgcolor: '#e8edf3',
+          bgcolor: '#f0f4f8',
           minHeight: '100vh',
         }}
       >

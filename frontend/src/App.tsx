@@ -21,7 +21,7 @@ const theme = createTheme({
   },
   palette: {
     background: {
-      default: '#e8edf3',
+      default: '#f0f4f8',
     },
   },
   components: {

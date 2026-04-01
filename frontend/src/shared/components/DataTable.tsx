@@ -28,8 +28,8 @@ function CustomToolbar() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderBottom: '1px solid #cbd5e1',
-        bgcolor: '#f1f5f9',
+        borderBottom: '1px solid #e2e8f0',
+        bgcolor: '#f8fafc',
       }}
     >
       <GridToolbarFilterButton />
@@ -88,7 +88,7 @@ function DataTable<T extends { id: number }>({
       sx={{
         bgcolor: '#fff',
         borderRadius: '12px',
-        border: '1px solid #cbd5e1',
+        border: '0.5px solid #e2e8f0',
         overflow: 'hidden',
       }}
     >
@@ -115,7 +115,7 @@ function DataTable<T extends { id: number }>({
           // Header
           '& .MuiDataGrid-columnHeaders': {
             bgcolor: '#f8fafc',
-            borderBottom: '1px solid #cbd5e1',
+            borderBottom: '1px solid #e2e8f0',
             minHeight: '34px !important',
             maxHeight: '34px !important',
           },
@@ -139,7 +139,7 @@ function DataTable<T extends { id: number }>({
             fontSize: 12,
             color: '#1e293b',
             bgcolor: '#fff',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '0.5px solid #f1f5f9',
             display: 'flex',
             alignItems: 'center',
             px: '13px',
@@ -165,7 +165,7 @@ function DataTable<T extends { id: number }>({
 
           // Footer / pagination
           '& .MuiDataGrid-footerContainer': {
-            borderTop: '1px solid #cbd5e1',
+            borderTop: '1px solid #e2e8f0',
             bgcolor: '#f8fafc',
             minHeight: 38,
           },
