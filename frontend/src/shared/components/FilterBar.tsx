@@ -12,9 +12,10 @@ interface FilterBarProps {
   options: FilterOption[];
   value: string;
   onChange: (value: string) => void;
+  counts?: Record<string, number>;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ label, options, value, onChange }) => (
+const FilterBar: React.FC<FilterBarProps> = ({ label, options, value, onChange, counts }) => (
   <Box
     sx={{
       display: 'flex',
@@ -29,6 +30,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ label, options, value, onChange }
     </Typography>
     {options.map((opt) => {
       const isActive = value === opt.value;
+      const count = counts?.[opt.value];
       return (
         <Box
           key={opt.value}
@@ -55,6 +57,20 @@ const FilterBar: React.FC<FilterBarProps> = ({ label, options, value, onChange }
           }}
         >
           {opt.label}
+          {count !== undefined && (
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                opacity: 0.7,
+                marginLeft: 2,
+                minWidth: 14,
+                textAlign: 'center',
+              }}
+            >
+              {count}
+            </span>
+          )}
         </Box>
       );
     })}

@@ -50,6 +50,9 @@ const FlightOrderList: React.FC = () => {
         field: 'id',
         headerName: 'Nr zlecenia',
         width: 150,
+        renderCell: (params) => (
+          <span style={{ fontFamily: 'monospace' }}>#{params.value}</span>
+        ),
       },
       {
         field: 'plannedStartTime',
@@ -86,6 +89,14 @@ const FlightOrderList: React.FC = () => {
         },
       },
       {
+        field: 'estimatedRouteLengthKm',
+        headerName: 'Dystans',
+        width: 100,
+        renderCell: (params) => (
+          <span>{params.value != null ? `${params.value} km` : '\u2014'}</span>
+        ),
+      },
+      {
         field: 'status',
         headerName: 'Status',
         width: 200,
@@ -112,6 +123,14 @@ const FlightOrderList: React.FC = () => {
     { value: 'COMPLETED', label: 'Zrealizowane', color: '#0f766e' },
     { value: 'NOT_COMPLETED', label: 'Nie zrealizowane', color: '#64748b' },
   ];
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: flightOrders.length };
+    for (const o of flightOrders) {
+      counts[o.status] = (counts[o.status] || 0) + 1;
+    }
+    return counts;
+  }, [flightOrders]);
 
   const filteredOrders = useMemo(
     () => statusFilter === 'all' ? flightOrders : flightOrders.filter((o) => o.status === statusFilter),
@@ -157,6 +176,7 @@ const FlightOrderList: React.FC = () => {
         options={STATUS_FILTER_OPTIONS}
         value={statusFilter}
         onChange={setStatusFilter}
+        counts={filterCounts}
       />
       <DataTable
         rows={filteredOrders}

@@ -23,6 +23,16 @@ import { canEdit } from '../../shared/utils/permissions';
 
 const ROUTE_COLORS = ['#3b7ff5', '#e04040', '#16a34a', '#d97706', '#7c3aed', '#0891b2'];
 
+const STATUS_DOT_COLORS: Record<string, string> = {
+  INTRODUCED: '#1d4ed8',
+  REJECTED: '#b91c1c',
+  CONFIRMED: '#1a7f4e',
+  SCHEDULED: '#b45309',
+  PARTIALLY_COMPLETED: '#7c3aed',
+  COMPLETED: '#0f766e',
+  CANCELLED: '#64748b',
+};
+
 // Auto-fit map bounds
 const FitBounds: React.FC<{ positions: [number, number][] }> = ({ positions }) => {
   const map = useMap();
@@ -61,10 +71,17 @@ const columns: GridColDef[] = [
   {
     field: 'id',
     headerName: 'Nr',
-    width: 70,
-    renderCell: (params) => (
-      <span style={{ fontFamily: 'monospace' }}>#{params.value}</span>
-    ),
+    width: 80,
+    renderCell: (params) => {
+      const row = params.row as FlightOperation;
+      const dotColor = STATUS_DOT_COLORS[row.status] || '#64748b';
+      return (
+        <span style={{ fontFamily: 'monospace', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
+          #{params.value}
+        </span>
+      );
+    },
   },
   {
     field: 'orderProjectNumber',
@@ -115,7 +132,7 @@ const columns: GridColDef[] = [
       const row = params.row as FlightOperation;
       return (
         <span style={{ fontSize: 11 }}>
-          {row.proposedDateFrom || '—'}
+          {row.proposedDateFrom || '\u2014'}
           {row.proposedDateTo && <><br />{row.proposedDateTo}</>}
         </span>
       );
@@ -129,7 +146,7 @@ const columns: GridColDef[] = [
       const row = params.row as FlightOperation;
       return (
         <span style={{ fontSize: 11 }}>
-          {row.plannedDateFrom || '—'}
+          {row.plannedDateFrom || '\u2014'}
           {row.plannedDateTo && <><br />{row.plannedDateTo}</>}
         </span>
       );
@@ -138,7 +155,10 @@ const columns: GridColDef[] = [
   {
     field: 'routeLengthKm',
     headerName: 'Km',
-    width: 70,
+    width: 80,
+    renderCell: (params) => (
+      <span>{params.value != null ? `${params.value} km` : '\u2014'}</span>
+    ),
   },
   {
     field: 'status',
@@ -165,6 +185,7 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, color }) => (
       bgcolor: '#fff',
       borderRadius: '10px',
       border: '0.5px solid #e2e8f0',
+      borderLeft: color ? `3px solid ${color}` : '0.5px solid #e2e8f0',
       px: '15px',
       py: '12px',
     }}
@@ -270,6 +291,14 @@ const OperationList: React.FC = () => {
     { value: 'COMPLETED', label: 'Zrealizowane', color: '#0f766e' },
     { value: 'CANCELLED', label: 'Rezygnacja', color: '#64748b' },
   ];
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: operations.length };
+    for (const op of operations) {
+      counts[op.status] = (counts[op.status] || 0) + 1;
+    }
+    return counts;
+  }, [operations]);
 
   const filteredOperations = useMemo(
     () => statusFilter === 'all' ? operations : operations.filter((o) => o.status === statusFilter),
@@ -449,6 +478,7 @@ const OperationList: React.FC = () => {
         options={STATUS_FILTER_OPTIONS}
         value={statusFilter}
         onChange={setStatusFilter}
+        counts={filterCounts}
       />
 
       {/* Operations table */}

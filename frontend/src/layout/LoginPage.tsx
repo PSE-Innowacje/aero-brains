@@ -13,10 +13,10 @@ import {
 import { useAuth } from '../auth/AuthContext';
 
 const TEST_ACCOUNTS = [
-  { email: 'admin@aero.pl', label: 'Administrator', icon: '🔐' },
-  { email: 'planner@aero.pl', label: 'Osoba planująca', icon: '📋' },
-  { email: 'supervisor@aero.pl', label: 'Osoba nadzorująca', icon: '👁' },
-  { email: 'pilot@aero.pl', label: 'Pilot', icon: '✈️' },
+  { email: 'admin@aero.pl', label: 'Administrator', icon: '\u{1F510}' },
+  { email: 'planner@aero.pl', label: 'Osoba planująca', icon: '\u{1F4CB}' },
+  { email: 'supervisor@aero.pl', label: 'Osoba nadzorująca', icon: '\u{1F441}' },
+  { email: 'pilot@aero.pl', label: 'Pilot', icon: '\u2708\uFE0F' },
 ];
 
 const LoginPage: React.FC = () => {
@@ -62,7 +62,7 @@ const LoginPage: React.FC = () => {
         bgcolor: '#e8edf3',
       }}
     >
-      <Card sx={{ maxWidth: 420, width: '100%', mx: 2, borderRadius: '14px', border: '0.5px solid #e2e8f0' }}>
+      <Card sx={{ maxWidth: 420, width: '100%', mx: 2, borderRadius: '14px', border: '0.5px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
         <CardContent sx={{ p: 4 }}>
           <Box sx={{ textAlign: 'center', mb: 3 }}>
             <Box sx={{ fontSize: 28, mb: 0.5 }}>{'\u{1F681}'}</Box>

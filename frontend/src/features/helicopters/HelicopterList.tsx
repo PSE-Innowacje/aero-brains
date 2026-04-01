@@ -27,6 +27,27 @@ const columns: GridColDef[] = [
     minWidth: 140,
   },
   {
+    field: 'description',
+    headerName: 'Opis',
+    width: 200,
+    renderCell: (params) => (
+      <span
+        style={{
+          color: '#94a3b8',
+          fontSize: 11,
+          maxWidth: 200,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          display: 'block',
+        }}
+        title={params.value as string}
+      >
+        {params.value || '\u2014'}
+      </span>
+    ),
+  },
+  {
     field: 'rangeKm',
     headerName: 'Zasięg',
     width: 100,
@@ -90,6 +111,14 @@ const HelicopterList: React.FC = () => {
     [helicopters, statusFilter],
   );
 
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: helicopters.length };
+    for (const h of helicopters) {
+      counts[h.status] = (counts[h.status] || 0) + 1;
+    }
+    return counts;
+  }, [helicopters]);
+
   const handleRowClick = (id: number) => {
     navigate(`/helicopters/${id}`);
   };
@@ -129,6 +158,7 @@ const HelicopterList: React.FC = () => {
         options={statusFilterOptions}
         value={statusFilter}
         onChange={setStatusFilter}
+        counts={filterCounts}
       />
       <DataTable
         rows={filteredHelicopters}

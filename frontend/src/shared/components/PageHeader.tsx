@@ -17,6 +17,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, action, onBack
       justifyContent: 'space-between',
       bgcolor: '#fff',
       borderBottom: '1px solid #e2e8f0',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       px: '24px',
       py: '13px',
     }}
