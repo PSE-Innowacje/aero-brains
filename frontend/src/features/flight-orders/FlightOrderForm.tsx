@@ -98,10 +98,11 @@ const FlightOrderForm: React.FC = () => {
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<FlightOrderFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(flightOrderSchema) as any,
+    mode: 'onChange',
     defaultValues: {
       plannedStartTime: '',
       plannedEndTime: '',
@@ -328,7 +329,7 @@ const FlightOrderForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Planowana data startu"
+                label="Planowana data startu *"
                 type="datetime-local"
                 InputLabelProps={{ shrink: true }}
                 error={!!errors.plannedStartTime}
@@ -346,7 +347,7 @@ const FlightOrderForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Planowana data lądowania"
+                label="Planowana data lądowania *"
                 type="datetime-local"
                 InputLabelProps={{ shrink: true }}
                 error={!!errors.plannedEndTime}
@@ -363,10 +364,10 @@ const FlightOrderForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.pilotId} disabled={readOnly}>
-                <InputLabel>Pilot</InputLabel>
+                <InputLabel>Pilot *</InputLabel>
                 <Select
                   {...field}
-                  label="Pilot"
+                  label="Pilot *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -389,10 +390,10 @@ const FlightOrderForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.helicopterId} disabled={readOnly}>
-                <InputLabel>Helikopter</InputLabel>
+                <InputLabel>Helikopter *</InputLabel>
                 <Select
                   {...field}
-                  label="Helikopter"
+                  label="Helikopter *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -473,10 +474,10 @@ const FlightOrderForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.departureSiteId} disabled={readOnly}>
-                <InputLabel>Miejsce startu</InputLabel>
+                <InputLabel>Miejsce startu *</InputLabel>
                 <Select
                   {...field}
-                  label="Miejsce startu"
+                  label="Miejsce startu *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -499,10 +500,10 @@ const FlightOrderForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.arrivalSiteId} disabled={readOnly}>
-                <InputLabel>Miejsce lądowania</InputLabel>
+                <InputLabel>Miejsce lądowania *</InputLabel>
                 <Select
                   {...field}
-                  label="Miejsce lądowania"
+                  label="Miejsce lądowania *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -525,11 +526,11 @@ const FlightOrderForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.operationIds} disabled={readOnly}>
-                <InputLabel>Operacje</InputLabel>
+                <InputLabel>Operacje *</InputLabel>
                 <Select
                   {...field}
                   multiple
-                  label="Operacje"
+                  label="Operacje *"
                   value={field.value ?? []}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -579,7 +580,7 @@ const FlightOrderForm: React.FC = () => {
               <TextField
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
-                label="Szacowana długość trasy (km)"
+                label="Szacowana długość trasy (km) *"
                 type="number"
                 error={!!errors.estimatedRouteLengthKm}
                 helperText={errors.estimatedRouteLengthKm?.message}
@@ -666,7 +667,7 @@ const FlightOrderForm: React.FC = () => {
               <Button
                 type="submit"
                 variant="contained"
-                disabled={saveMutation.isPending || hasValidationWarnings}
+                disabled={saveMutation.isPending || hasValidationWarnings || !isValid}
               >
                 Zapisz
               </Button>

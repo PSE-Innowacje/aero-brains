@@ -8,7 +8,7 @@ export const helicopterSchema = z
       .max(30, 'Maksymalnie 30 znaków'),
     helicopterType: z
       .string()
-      .min(1, 'Typ jest wymagany')
+      .min(1, 'Typ helikoptera jest wymagany')
       .max(100, 'Maksymalnie 100 znaków'),
     description: z
       .string()
@@ -16,22 +16,22 @@ export const helicopterSchema = z
       .optional()
       .or(z.literal('')),
     maxCrewCount: z
-      .number({ error: 'Wymagana liczba całkowita' })
-      .int('Musi być liczbą całkowitą')
-      .min(1, 'Minimum 1')
-      .max(10, 'Maksimum 10'),
+      .number({ error: 'Wymagana liczba od 1 do 10' })
+      .int('Wymagana liczba od 1 do 10')
+      .min(1, 'Wymagana liczba od 1 do 10')
+      .max(10, 'Wymagana liczba od 1 do 10'),
     maxCrewWeight: z
-      .number({ error: 'Wymagana liczba całkowita' })
-      .int('Musi być liczbą całkowitą')
-      .min(1, 'Minimum 1 kg')
-      .max(1000, 'Maksimum 1000 kg'),
-    status: z.string(),
+      .number({ error: 'Wymagana liczba od 1 do 1000' })
+      .int('Wymagana liczba od 1 do 1000')
+      .min(1, 'Wymagana liczba od 1 do 1000')
+      .max(1000, 'Wymagana liczba od 1 do 1000'),
+    status: z.string().min(1, 'Status jest wymagany'),
     inspectionExpiryDate: z.string().optional().or(z.literal('')),
     rangeKm: z
-      .number({ error: 'Wymagana liczba całkowita' })
-      .int('Musi być liczbą całkowitą')
-      .min(1, 'Minimum 1 km')
-      .max(1000, 'Maksimum 1000 km'),
+      .number({ error: 'Wymagana liczba od 1 do 1000' })
+      .int('Wymagana liczba od 1 do 1000')
+      .min(1, 'Wymagana liczba od 1 do 1000')
+      .max(1000, 'Wymagana liczba od 1 do 1000'),
   })
   .refine(
     (data) => {
@@ -41,7 +41,7 @@ export const helicopterSchema = z
       return true;
     },
     {
-      message: 'Data przeglądu jest wymagana dla aktywnych helikopterów',
+      message: 'Data przeglądu wymagana dla aktywnego helikoptera',
       path: ['inspectionExpiryDate'],
     },
   );

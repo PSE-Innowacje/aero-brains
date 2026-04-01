@@ -81,7 +81,8 @@ export const api = {
       });
       // Persist the JWT so the interceptor picks it up
       localStorage.setItem('aero_token', data.token);
-      // Fetch full user details (firstName, lastName) from users endpoint
+      // Fetch full user details (firstName, lastName)
+      // Try /users first (admin only), then /crew-members as fallback
       let firstName = '';
       let lastName = '';
       let userId = 0;
@@ -94,7 +95,20 @@ export const api = {
           userId = found.id;
         }
       } catch {
-        // Non-admin users may not have access to /users — use email as fallback
+        // /users is admin-only — try crew-members (accessible to supervisor, pilot)
+        try {
+          const { data: crew } = await http.get<CrewMember[]>('/crew-members');
+          const found = crew.find((c) => c.email === data.email);
+          if (found) {
+            firstName = found.firstName;
+            lastName = found.lastName;
+            userId = found.id;
+          }
+        } catch {
+          // Derive name from email as last resort
+        }
+      }
+      if (!firstName && !lastName) {
         const parts = data.email.split('@')[0].split('.');
         firstName = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : '';
         lastName = parts[1] ? parts[1].charAt(0).toUpperCase() + parts[1].slice(1) : '';

@@ -42,9 +42,10 @@ const UserForm: React.FC = () => {
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
+    mode: 'onChange',
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -117,7 +118,7 @@ const UserForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Imię"
+                label="Imię *"
                 error={!!errors.firstName}
                 helperText={errors.firstName?.message}
                 fullWidth
@@ -132,7 +133,7 @@ const UserForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Nazwisko"
+                label="Nazwisko *"
                 error={!!errors.lastName}
                 helperText={errors.lastName?.message}
                 fullWidth
@@ -147,7 +148,7 @@ const UserForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Email"
+                label="Email *"
                 error={!!errors.email}
                 helperText={errors.email?.message}
                 fullWidth
@@ -163,7 +164,7 @@ const UserForm: React.FC = () => {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Hasło"
+                  label="Hasło *"
                   type="password"
                   error={!!errors.password}
                   helperText={errors.password?.message}
@@ -179,8 +180,8 @@ const UserForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.role} disabled={readOnly}>
-                <InputLabel>Rola</InputLabel>
-                <Select {...field} label="Rola">
+                <InputLabel>Rola *</InputLabel>
+                <Select {...field} label="Rola *">
                   <MenuItem value="ADMINISTRATOR">Administrator</MenuItem>
                   <MenuItem value="PLANNER">Osoba planująca</MenuItem>
                   <MenuItem value="SUPERVISOR">Osoba nadzorująca</MenuItem>
@@ -195,7 +196,7 @@ const UserForm: React.FC = () => {
 
           {!readOnly && (
             <Box display="flex" gap={2}>
-              <Button type="submit" variant="contained" disabled={saveMutation.isPending}>
+              <Button type="submit" variant="contained" disabled={saveMutation.isPending || !isValid}>
                 Zapisz
               </Button>
               <Button variant="outlined" onClick={() => navigate('/users')}>

@@ -183,7 +183,9 @@ const AppShell: React.FC = () => {
                 </Typography>
 
                 {/* Nav items */}
-                {group.items.map((item) => {
+                {group.items
+                  .filter((item) => !item.roles || (user && item.roles.includes(user.role)))
+                  .map((item) => {
                   const isActive =
                     location.pathname === item.path ||
                     location.pathname.startsWith(item.path + '/');

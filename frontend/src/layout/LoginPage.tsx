@@ -6,10 +6,18 @@ import {
   Button,
   Card,
   CardContent,
+  Divider,
   TextField,
   Typography,
 } from '@mui/material';
 import { useAuth } from '../auth/AuthContext';
+
+const TEST_ACCOUNTS = [
+  { email: 'admin@aero.pl', label: 'Administrator', icon: '🔐' },
+  { email: 'planner@aero.pl', label: 'Osoba planująca', icon: '📋' },
+  { email: 'supervisor@aero.pl', label: 'Osoba nadzorująca', icon: '👁' },
+  { email: 'pilot@aero.pl', label: 'Pilot', icon: '✈️' },
+];
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -39,6 +47,11 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleQuickLogin = (account: (typeof TEST_ACCOUNTS)[number]) => {
+    setEmail(account.email);
+    setPassword('password');
+  };
+
   return (
     <Box
       sx={{
@@ -46,20 +59,23 @@ const LoginPage: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        bgcolor: 'grey.100',
+        bgcolor: '#e8edf3',
       }}
     >
-      <Card sx={{ maxWidth: 400, width: '100%', mx: 2 }}>
+      <Card sx={{ maxWidth: 420, width: '100%', mx: 2, borderRadius: '14px', border: '0.5px solid #e2e8f0' }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" align="center" gutterBottom fontWeight="bold">
-            AERO
-          </Typography>
-          <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-            Ewidencja operacji lotniczych
-          </Typography>
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Box sx={{ fontSize: 28, mb: 0.5 }}>{'\u{1F681}'}</Box>
+            <Typography sx={{ fontSize: 22, fontWeight: 700, color: '#0f172a' }}>
+              AERO
+            </Typography>
+            <Typography sx={{ fontSize: 11, color: '#94a3b8', mt: 0.5 }}>
+              Ewidencja operacji lotniczych
+            </Typography>
+          </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2, fontSize: 12 }}>
               {error}
             </Alert>
           )}
@@ -70,6 +86,7 @@ const LoginPage: React.FC = () => {
               type="email"
               fullWidth
               margin="normal"
+              size="small"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
@@ -80,6 +97,7 @@ const LoginPage: React.FC = () => {
               type="password"
               fullWidth
               margin="normal"
+              size="small"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
@@ -87,14 +105,64 @@ const LoginPage: React.FC = () => {
             />
             <Button
               type="submit"
-              variant="contained"
               fullWidth
-              size="large"
-              sx={{ mt: 2 }}
               disabled={loading}
+              sx={{
+                mt: 2,
+                bgcolor: '#3b7ff5',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: 13,
+                py: 1,
+                borderRadius: '7px',
+                '&:hover': { bgcolor: '#2563eb' },
+              }}
             >
               Zaloguj się
             </Button>
+          </Box>
+
+          <Divider sx={{ my: 3, fontSize: 10, color: '#94a3b8' }}>
+            Szybkie logowanie
+          </Divider>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+            {TEST_ACCOUNTS.map((account) => (
+              <Box
+                key={account.email}
+                onClick={() => handleQuickLogin(account)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: '8px',
+                  border: email === account.email
+                    ? '1.5px solid #3b7ff5'
+                    : '1px solid #e2e8f0',
+                  bgcolor: email === account.email ? '#eff6ff' : '#fff',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  '&:hover': {
+                    borderColor: '#3b7ff5',
+                    bgcolor: '#eff6ff',
+                  },
+                }}
+              >
+                <Box sx={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>
+                  {account.icon}
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>
+                    {account.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 9, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {account.email}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
           </Box>
         </CardContent>
       </Card>

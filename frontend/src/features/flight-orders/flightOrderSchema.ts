@@ -9,25 +9,29 @@ export const flightOrderSchema = z.object({
     .min(1, 'Planowana data lądowania jest wymagana'),
   pilotId: z
     .number({ error: 'Pilot jest wymagany' })
-    .int(),
+    .int()
+    .min(1, 'Pilot jest wymagany'),
   helicopterId: z
     .number({ error: 'Helikopter jest wymagany' })
-    .int(),
+    .int()
+    .min(1, 'Helikopter jest wymagany'),
   crewMemberIds: z
     .array(z.number().int()),
   departureSiteId: z
     .number({ error: 'Miejsce startu jest wymagane' })
-    .int(),
+    .int()
+    .min(1, 'Miejsce startu jest wymagane'),
   arrivalSiteId: z
     .number({ error: 'Miejsce lądowania jest wymagane' })
-    .int(),
+    .int()
+    .min(1, 'Miejsce lądowania jest wymagane'),
   operationIds: z
     .array(z.number().int())
     .min(1, 'Wybierz co najmniej jedną operację'),
   estimatedRouteLengthKm: z
     .number({ error: 'Wymagana liczba całkowita' })
-    .int('Musi być liczbą całkowitą')
-    .min(0, 'Minimum 0 km'),
+    .int('Wymagana liczba całkowita')
+    .min(0, 'Wymagana liczba całkowita'),
   actualStartTime: z.string().optional().or(z.literal('')),
   actualEndTime: z.string().optional().or(z.literal('')),
 });

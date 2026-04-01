@@ -39,9 +39,10 @@ const LandingSiteForm: React.FC = () => {
     handleSubmit,
     reset,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<LandingSiteFormData>({
     resolver: zodResolver(landingSiteSchema),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       lat: 52.0,
@@ -118,7 +119,7 @@ const LandingSiteForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Nazwa"
+                label="Nazwa *"
                 error={!!errors.name}
                 helperText={errors.name?.message}
                 fullWidth
@@ -134,7 +135,7 @@ const LandingSiteForm: React.FC = () => {
               <TextField
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
-                label="Szerokość geograficzna (lat)"
+                label="Szerokość geograficzna (lat) *"
                 type="number"
                 inputProps={{ step: 'any' }}
                 error={!!errors.lat}
@@ -152,7 +153,7 @@ const LandingSiteForm: React.FC = () => {
               <TextField
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
-                label="Długość geograficzna (lng)"
+                label="Długość geograficzna (lng) *"
                 type="number"
                 inputProps={{ step: 'any' }}
                 error={!!errors.lng}
@@ -173,7 +174,7 @@ const LandingSiteForm: React.FC = () => {
 
           {!readOnly && (
             <Box display="flex" gap={2}>
-              <Button type="submit" variant="contained" disabled={saveMutation.isPending}>
+              <Button type="submit" variant="contained" disabled={saveMutation.isPending || !isValid}>
                 Zapisz
               </Button>
               <Button variant="outlined" onClick={() => navigate('/landing-sites')}>

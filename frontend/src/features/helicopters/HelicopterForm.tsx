@@ -45,9 +45,10 @@ const HelicopterForm: React.FC = () => {
     handleSubmit,
     reset,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<HelicopterFormData>({
     resolver: zodResolver(helicopterSchema),
+    mode: 'onChange',
     defaultValues: {
       registrationNumber: '',
       helicopterType: '',
@@ -128,7 +129,7 @@ const HelicopterForm: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Numer rejestracyjny"
+                    label="Numer rejestracyjny *"
                     error={!!errors.registrationNumber}
                     helperText={errors.registrationNumber?.message}
                     fullWidth
@@ -143,7 +144,7 @@ const HelicopterForm: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Typ"
+                    label="Typ *"
                     error={!!errors.helicopterType}
                     helperText={errors.helicopterType?.message}
                     fullWidth
@@ -174,7 +175,7 @@ const HelicopterForm: React.FC = () => {
                   <TextField
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    label="Maks. liczba załogi"
+                    label="Maks. liczba załogi *"
                     type="number"
                     error={!!errors.maxCrewCount}
                     helperText={errors.maxCrewCount?.message}
@@ -191,7 +192,7 @@ const HelicopterForm: React.FC = () => {
                   <TextField
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    label="Maks. waga załogi (kg)"
+                    label="Maks. waga załogi (kg) *"
                     type="number"
                     error={!!errors.maxCrewWeight}
                     helperText={errors.maxCrewWeight?.message}
@@ -206,8 +207,8 @@ const HelicopterForm: React.FC = () => {
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.status} disabled={readOnly}>
-                    <InputLabel>Status</InputLabel>
-                    <Select {...field} label="Status">
+                    <InputLabel>Status *</InputLabel>
+                    <Select {...field} label="Status *">
                       <MenuItem value="ACTIVE">Aktywny</MenuItem>
                       <MenuItem value="INACTIVE">Nieaktywny</MenuItem>
                     </Select>
@@ -244,7 +245,7 @@ const HelicopterForm: React.FC = () => {
                   <TextField
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    label="Zasięg bez lądowania (km)"
+                    label="Zasięg bez lądowania (km) *"
                     type="number"
                     error={!!errors.rangeKm}
                     helperText={errors.rangeKm?.message}
@@ -256,7 +257,7 @@ const HelicopterForm: React.FC = () => {
 
               {!readOnly && (
                 <Box display="flex" gap={2}>
-                  <Button type="submit" variant="contained" disabled={saveMutation.isPending}>
+                  <Button type="submit" variant="contained" disabled={saveMutation.isPending || !isValid}>
                     Zapisz
                   </Button>
                   <Button variant="outlined" onClick={() => navigate('/helicopters')}>

@@ -44,9 +44,10 @@ const CrewForm: React.FC = () => {
     handleSubmit,
     reset,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<CrewFormData>({
     resolver: zodResolver(crewSchema),
+    mode: 'onChange',
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -123,7 +124,7 @@ const CrewForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Imię"
+                label="Imię *"
                 error={!!errors.firstName}
                 helperText={errors.firstName?.message}
                 fullWidth
@@ -138,7 +139,7 @@ const CrewForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Nazwisko"
+                label="Nazwisko *"
                 error={!!errors.lastName}
                 helperText={errors.lastName?.message}
                 fullWidth
@@ -153,7 +154,7 @@ const CrewForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Email"
+                label="Email *"
                 error={!!errors.email}
                 helperText={errors.email?.message}
                 fullWidth
@@ -169,7 +170,7 @@ const CrewForm: React.FC = () => {
               <TextField
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
-                label="Waga (kg)"
+                label="Waga (kg) *"
                 type="number"
                 error={!!errors.weight}
                 helperText={errors.weight?.message}
@@ -184,8 +185,8 @@ const CrewForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.role} disabled={readOnly}>
-                <InputLabel>Rola</InputLabel>
-                <Select {...field} label="Rola">
+                <InputLabel>Rola *</InputLabel>
+                <Select {...field} label="Rola *">
                   <MenuItem value="PILOT">Pilot</MenuItem>
                   <MenuItem value="OBSERVER">Obserwator</MenuItem>
                 </Select>
@@ -204,7 +205,7 @@ const CrewForm: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Numer licencji pilota"
+                    label="Numer licencji pilota *"
                     error={!!errors.pilotLicenseNumber}
                     helperText={errors.pilotLicenseNumber?.message}
                     fullWidth
@@ -219,7 +220,7 @@ const CrewForm: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Data ważności licencji"
+                    label="Data ważności licencji *"
                     type="date"
                     InputLabelProps={{ shrink: true }}
                     error={!!errors.licenseExpiryDate}
@@ -238,7 +239,7 @@ const CrewForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Data ważności szkolenia"
+                label="Data ważności szkolenia *"
                 type="date"
                 InputLabelProps={{ shrink: true }}
                 error={!!errors.trainingExpiryDate}
@@ -251,7 +252,7 @@ const CrewForm: React.FC = () => {
 
           {!readOnly && (
             <Box display="flex" gap={2}>
-              <Button type="submit" variant="contained" disabled={saveMutation.isPending}>
+              <Button type="submit" variant="contained" disabled={saveMutation.isPending || !isValid}>
                 Zapisz
               </Button>
               <Button variant="outlined" onClick={() => navigate('/crew')}>

@@ -23,6 +23,17 @@ const columns: GridColDef[] = [
     headerName: 'Email',
     flex: 1,
     minWidth: 200,
+    renderCell: (params) => (
+      <span style={{ fontFamily: 'monospace', fontSize: 11 }}>{params.value}</span>
+    ),
+  },
+  {
+    field: 'fullName',
+    headerName: 'Imię i nazwisko',
+    flex: 1,
+    minWidth: 160,
+    valueGetter: (_value: unknown, row: { firstName?: string; lastName?: string }) =>
+      `${row.firstName ?? ''} ${row.lastName ?? ''}`.trim(),
   },
   {
     field: 'role',
