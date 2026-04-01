@@ -61,23 +61,23 @@ function DataTable<T extends { id: number }>({
   const initialState = useMemo<GridInitialState>(() => {
     const state: GridInitialState = {
       pagination: { paginationModel: { pageSize: 10 } },
+      filter: initialFilter
+        ? {
+            filterModel: {
+              items: [
+                {
+                  field: initialFilter.field,
+                  operator: initialFilter.operator,
+                  value: initialFilter.value,
+                },
+              ],
+            },
+          }
+        : { filterModel: { items: [] } },
     };
     if (defaultSortField) {
       state.sorting = {
         sortModel: [{ field: defaultSortField, sort: defaultSortDirection }],
-      };
-    }
-    if (initialFilter) {
-      state.filter = {
-        filterModel: {
-          items: [
-            {
-              field: initialFilter.field,
-              operator: initialFilter.operator,
-              value: initialFilter.value,
-            },
-          ],
-        },
       };
     }
     return state;
