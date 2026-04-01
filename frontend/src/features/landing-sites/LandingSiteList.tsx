@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Box, Typography } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import DataTable from '../../shared/components/DataTable';
@@ -160,6 +160,9 @@ const LandingSiteList: React.FC = () => {
                           mouseout: () => setHoveredSiteId(null),
                         }}
                       >
+                        <Tooltip permanent direction="top" offset={[0, -16]} className="route-label">
+                          {site.name}
+                        </Tooltip>
                         <Popup>
                           <strong>{site.name}</strong>
                           <span style={{ fontSize: 11, fontFamily: 'monospace', display: 'block', marginTop: 2, color: '#64748b' }}>

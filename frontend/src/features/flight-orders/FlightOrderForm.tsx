@@ -226,24 +226,31 @@ const FlightOrderForm: React.FC = () => {
     [landingSites, watchedValues.arrivalSiteId],
   );
 
-  // Fetch geojson for selected operations (list items don't include geojsonContent)
-  const [operationPoints, setOperationPoints] = useState<Array<{ lat: number; lng: number }>>([]);
+  // Fetch geojson for selected operations — store as separate segments per operation
+  const [operationSegments, setOperationSegments] = useState<Array<Array<{ lat: number; lng: number }>>>([]);
   const selectedOpIds = watchedValues.operationIds ?? [];
+
+  // Flat list for route calculation
+  const operationPoints = useMemo(
+    () => operationSegments.flat(),
+    [operationSegments],
+  );
 
   useEffect(() => {
     if (selectedOpIds.length === 0) {
-      setOperationPoints([]);
+      setOperationSegments([]);
       return;
     }
     let cancelled = false;
     const fetchRoutes = async () => {
-      const points: Array<{ lat: number; lng: number }> = [];
+      const segmentMap: Record<number, Array<{ lat: number; lng: number }>> = {};
       await Promise.all(
         selectedOpIds.map(async (opId) => {
           try {
             const geojson = await api.operations.getGeojson(opId);
             const str = typeof geojson === 'string' ? geojson : JSON.stringify(geojson);
             const parsed = JSON.parse(str);
+            const points: Array<{ lat: number; lng: number }> = [];
             const geom = parsed.geometry || parsed;
             if (geom.type === 'LineString' && Array.isArray(geom.coordinates)) {
               for (const coord of geom.coordinates) {
@@ -260,12 +267,19 @@ const FlightOrderForm: React.FC = () => {
                 }
               }
             }
+            if (points.length > 0) segmentMap[opId] = points;
           } catch {
             // skip operations without geojson
           }
         }),
       );
-      if (!cancelled) setOperationPoints(points);
+      if (!cancelled) {
+        // Preserve order of selectedOpIds
+        const ordered = selectedOpIds
+          .filter((id) => segmentMap[id])
+          .map((id) => segmentMap[id]);
+        setOperationSegments(ordered);
+      }
     };
     fetchRoutes();
     return () => { cancelled = true; };
@@ -632,6 +646,82 @@ const FlightOrderForm: React.FC = () => {
             )}
           />
 
+          {/* Selected operations details */}
+          {selectedOpIds.length > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#f8fafc',
+                borderRadius: '10px',
+                border: '0.5px solid #e2e8f0',
+                overflow: 'hidden',
+              }}
+            >
+              <Box sx={{ px: '14px', py: '10px', borderBottom: '0.5px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Wybrane operacje ({selectedOpIds.length})
+                </Typography>
+              </Box>
+              {selectedOpIds.map((opId) => {
+                const op = allOperations.find((o) => o.id === opId);
+                const details = opDetails[opId];
+                if (!op) return null;
+                return (
+                  <Box
+                    key={opId}
+                    sx={{
+                      px: '14px',
+                      py: '10px',
+                      borderBottom: '0.5px solid #f1f5f9',
+                      '&:last-child': { borderBottom: 'none' },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#0f172a', fontFamily: 'monospace' }}>
+                        {op.orderProjectNumber}
+                      </Typography>
+                      {details?.shortDescription && (
+                        <Typography sx={{ fontSize: 12, color: '#475569' }}>
+                          — {details.shortDescription}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      {op.activities && op.activities.length > 0 && (
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          {op.activities.map((a, i) => (
+                            <span
+                              key={i}
+                              style={{
+                                display: 'inline-block',
+                                padding: '1px 6px',
+                                borderRadius: 4,
+                                fontSize: 10,
+                                background: '#e2e8f0',
+                                color: '#475569',
+                              }}
+                            >
+                              {a.activityType}
+                            </span>
+                          ))}
+                        </Box>
+                      )}
+                      {op.plannedDateFrom && (
+                        <Typography sx={{ fontSize: 10, color: '#94a3b8' }}>
+                          📅 {op.plannedDateFrom}{op.plannedDateTo ? ` — ${op.plannedDateTo}` : ''}
+                        </Typography>
+                      )}
+                      {op.routeLengthKm != null && (
+                        <Typography sx={{ fontSize: 10, color: '#94a3b8' }}>
+                          📏 {op.routeLengthKm} km
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+
           {/* Estimated route distance */}
           <Controller
             name="estimatedRouteLengthKm"
@@ -702,16 +792,11 @@ const FlightOrderForm: React.FC = () => {
           />
 
           {/* Map */}
-          <Box>
-            <Typography variant="h6" mb={1}>
-              Mapa trasy
-            </Typography>
-            <FlightOrderMap
-              startSite={startSite}
-              endSite={endSite}
-              operationPoints={operationPoints}
-            />
-          </Box>
+          <FlightOrderMap
+            startSite={startSite}
+            endSite={endSite}
+            operationSegments={operationSegments}
+          />
 
           {/* Status actions */}
           {flightOrder && !isNew && (

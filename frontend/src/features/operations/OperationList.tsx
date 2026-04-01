@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Box, Typography } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import DataTable from '../../shared/components/DataTable';
@@ -382,7 +382,7 @@ const OperationList: React.FC = () => {
         <Box sx={{ p: '14px' }}>
           {mapRoutes.length > 0 ? (
             <Box sx={{ borderRadius: '10px', overflow: 'hidden', border: '0.5px solid #e2e8f0' }}>
-              <MapContainer center={[52.0, 19.5]} zoom={6} style={{ height: 360, width: '100%' }}>
+              <MapContainer center={[52.0, 19.5]} zoom={6} style={{ height: 380, width: '100%' }}>
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -419,6 +419,9 @@ const OperationList: React.FC = () => {
                           opacity: isDimmed ? 0.2 : 1,
                         }}
                       >
+                        <Tooltip permanent direction="top" offset={[0, -8]} className="route-label">
+                          #{route.id}
+                        </Tooltip>
                         <Popup>
                           <strong>{route.label}</strong>
                           Początek trasy

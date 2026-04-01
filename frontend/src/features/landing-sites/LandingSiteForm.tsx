@@ -10,12 +10,22 @@ import {
   Typography,
   Stack,
 } from '@mui/material';
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import PageHeader from '../../shared/components/PageHeader';
 import { landingSiteSchema, type LandingSiteFormData } from './landingSiteSchema';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
-import MapView from '../../shared/components/MapView';
+
+const FitPoint: React.FC<{ lat: number; lng: number }> = ({ lat, lng }) => {
+  const map = useMap();
+  React.useEffect(() => {
+    map.setView([lat, lng], 12);
+  }, [map, lat, lng]);
+  return null;
+};
 
 const LandingSiteForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -61,6 +71,7 @@ const LandingSiteForm: React.FC = () => {
 
   const latValue = watch('lat');
   const lngValue = watch('lng');
+  const nameValue = watch('name');
 
   const isValidCoordinate =
     typeof latValue === 'number' &&
@@ -159,11 +170,71 @@ const LandingSiteForm: React.FC = () => {
           />
 
           {isValidCoordinate && (
-            <MapView
-              center={[latValue, lngValue]}
-              zoom={10}
-              markers={[{ lat: latValue, lng: lngValue, label: watch('name') || 'Lądowisko' }]}
-            />
+            <Box
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: '12px',
+                border: '0.5px solid #e2e8f0',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Card header */}
+              <Box
+                sx={{
+                  px: '18px',
+                  py: '14px',
+                  borderBottom: '0.5px solid #e2e8f0',
+                }}
+              >
+                <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                  Lokalizacja lądowiska
+                </Typography>
+              </Box>
+
+              <Box sx={{ p: '14px' }}>
+                <Box sx={{ borderRadius: '10px', overflow: 'hidden', border: '0.5px solid #e2e8f0' }}>
+                  <MapContainer
+                    center={[latValue, lngValue]}
+                    zoom={12}
+                    style={{ height: 340, width: '100%' }}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <FitPoint lat={latValue} lng={lngValue} />
+                    <CircleMarker
+                      center={[latValue, lngValue]}
+                      radius={8}
+                      pathOptions={{
+                        color: '#fff',
+                        weight: 2.5,
+                        fillColor: '#3b7ff5',
+                        fillOpacity: 1,
+                      }}
+                    >
+                      <Tooltip permanent direction="top" offset={[0, -10]} className="route-label">
+                        {nameValue || 'Lądowisko'}
+                      </Tooltip>
+                      <Popup>
+                        <strong>{nameValue || 'Lądowisko'}</strong>
+                        <span style={{ display: 'block', fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>
+                          {latValue.toFixed(4)}, {lngValue.toFixed(4)}
+                        </span>
+                      </Popup>
+                    </CircleMarker>
+                  </MapContainer>
+                </Box>
+
+                {/* Legend */}
+                <Box sx={{ display: 'flex', gap: 1, mt: 1.5, fontSize: 11, color: '#64748b', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#3b7ff5', border: '1.5px solid #fff', boxShadow: '0 0 0 1px #3b7ff5' }} />
+                    Lokalizacja lądowiska
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
           )}
 
           {!readOnly && (

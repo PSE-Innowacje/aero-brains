@@ -1,39 +1,56 @@
 import React, { useMemo } from 'react';
 import { Typography, Box } from '@mui/material';
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { LandingSite } from '../../api/types';
 
-// SVG marker icons
-const svgIcon = (color: string) =>
+const ROUTE_COLORS = ['#3b7ff5', '#7c3aed', '#0891b2', '#d97706', '#e04040', '#16a34a'];
+
+const makeIcon = (color: string, label: string, size = 30) =>
   L.divIcon({
     className: '',
-    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="28" height="42">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
-      <circle cx="12" cy="12" r="5" fill="#fff"/>
-    </svg>`,
-    iconSize: [28, 42],
-    iconAnchor: [14, 42],
-    popupAnchor: [0, -42],
+    html: `<div style="
+      background:${color};border:2.5px solid #fff;border-radius:50%;
+      width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;
+      color:#fff;font-size:${size * 0.4}px;font-weight:700;
+      box-shadow:0 2px 10px rgba(0,0,0,0.3);
+    ">${label}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2 + 4)],
   });
 
-const startIcon = svgIcon('#16a34a');
-const endIcon = svgIcon('#dc2626');
+const startIcon = makeIcon('#16a34a', '▶', 30);
+const endIcon = makeIcon('#dc2626', '■', 30);
 
 interface FlightOrderMapProps {
   startSite?: LandingSite;
   endSite?: LandingSite;
-  operationPoints?: Array<{ lat: number; lng: number }>;
+  operationSegments?: Array<Array<{ lat: number; lng: number }>>;
 }
 
-// Auto-fit bounds
-const FitBounds: React.FC<{ positions: Array<[number, number]> }> = ({ positions }) => {
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const R = 6371;
+  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const h = sinLat * sinLat + Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * sinLng * sinLng;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+function segmentDistance(points: Array<{ lat: number; lng: number }>): number {
+  let d = 0;
+  for (let i = 1; i < points.length; i++) d += haversineKm(points[i - 1], points[i]);
+  return Math.round(d);
+}
+
+const FitBounds: React.FC<{ positions: [number, number][] }> = ({ positions }) => {
   const map = useMap();
   React.useEffect(() => {
     if (positions.length > 0) {
-      const bounds = L.latLngBounds(positions);
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+      map.fitBounds(L.latLngBounds(positions), { padding: [50, 50], maxZoom: 11 });
     }
   }, [map, positions]);
   return null;
@@ -42,119 +59,196 @@ const FitBounds: React.FC<{ positions: Array<[number, number]> }> = ({ positions
 const FlightOrderMap: React.FC<FlightOrderMapProps> = ({
   startSite,
   endSite,
-  operationPoints,
+  operationSegments = [],
 }) => {
-  const hasPoints = operationPoints && operationPoints.length > 0;
+  const hasSegments = operationSegments.length > 0;
 
-  if (!startSite && !endSite && !hasPoints) {
-    return <Typography sx={{ fontSize: 12, color: '#94a3b8', py: 2 }}>Brak danych do wyświetlenia na mapie</Typography>;
+  if (!startSite && !endSite && !hasSegments) {
+    return (
+      <Box sx={{ bgcolor: '#f8fafc', borderRadius: '10px', border: '0.5px solid #e2e8f0', py: 4, textAlign: 'center' }}>
+        <Typography sx={{ fontSize: 12, color: '#94a3b8' }}>
+          Wybierz lądowiska i operacje, aby wyświetlić mapę trasy
+        </Typography>
+      </Box>
+    );
   }
 
-  // Operation route (solid blue line)
-  const opLine = useMemo<[number, number][]>(() => {
-    if (!hasPoints) return [];
-    return operationPoints!.map((p) => [p.lat, p.lng]);
-  }, [operationPoints, hasPoints]);
+  // Build transit lines (dashed) between: start → seg[0], seg[0] end → seg[1] start, ..., seg[n] end → end
+  const transitLines = useMemo(() => {
+    const lines: Array<{ from: [number, number]; to: [number, number] }> = [];
 
-  // Dashed line: start airport → first operation point
-  const transitToOp = useMemo<[number, number][]>(() => {
-    if (!startSite || !hasPoints) return [];
-    return [
-      [startSite.latitude, startSite.longitude],
-      opLine[0],
-    ];
-  }, [startSite, opLine, hasPoints]);
+    // Start airport → first segment start
+    if (startSite && hasSegments) {
+      const first = operationSegments[0][0];
+      lines.push({
+        from: [startSite.latitude, startSite.longitude],
+        to: [first.lat, first.lng],
+      });
+    }
 
-  // Dashed line: last operation point → end airport
-  const transitFromOp = useMemo<[number, number][]>(() => {
-    if (!endSite || !hasPoints) return [];
-    return [
-      opLine[opLine.length - 1],
-      [endSite.latitude, endSite.longitude],
-    ];
-  }, [endSite, opLine, hasPoints]);
+    // Between segments
+    for (let i = 0; i < operationSegments.length - 1; i++) {
+      const prevSeg = operationSegments[i];
+      const nextSeg = operationSegments[i + 1];
+      const prevEnd = prevSeg[prevSeg.length - 1];
+      const nextStart = nextSeg[0];
+      lines.push({
+        from: [prevEnd.lat, prevEnd.lng],
+        to: [nextStart.lat, nextStart.lng],
+      });
+    }
 
-  // Fallback: direct dashed line between airports if no operation points
-  const directTransit = useMemo<[number, number][]>(() => {
-    if (hasPoints || !startSite || !endSite) return [];
-    return [
-      [startSite.latitude, startSite.longitude],
-      [endSite.latitude, endSite.longitude],
-    ];
-  }, [startSite, endSite, hasPoints]);
+    // Last segment end → end airport
+    if (endSite && hasSegments) {
+      const lastSeg = operationSegments[operationSegments.length - 1];
+      const lastPoint = lastSeg[lastSeg.length - 1];
+      lines.push({
+        from: [lastPoint.lat, lastPoint.lng],
+        to: [endSite.latitude, endSite.longitude],
+      });
+    }
 
-  // All positions for bounds fitting
+    // Direct: start → end (no segments)
+    if (!hasSegments && startSite && endSite) {
+      lines.push({
+        from: [startSite.latitude, startSite.longitude],
+        to: [endSite.latitude, endSite.longitude],
+      });
+    }
+
+    return lines;
+  }, [startSite, endSite, operationSegments, hasSegments]);
+
+  // All positions for bounds
   const allPositions = useMemo<[number, number][]>(() => {
     const pos: [number, number][] = [];
     if (startSite) pos.push([startSite.latitude, startSite.longitude]);
-    if (hasPoints) pos.push(...opLine);
+    for (const seg of operationSegments) {
+      for (const p of seg) pos.push([p.lat, p.lng]);
+    }
     if (endSite) pos.push([endSite.latitude, endSite.longitude]);
     return pos;
-  }, [startSite, endSite, opLine, hasPoints]);
+  }, [startSite, endSite, operationSegments]);
+
+  // Stats
+  const stats = useMemo(() => {
+    let transitTotal = 0;
+    for (const line of transitLines) {
+      transitTotal += haversineKm(
+        { lat: line.from[0], lng: line.from[1] },
+        { lat: line.to[0], lng: line.to[1] },
+      );
+    }
+    let opTotal = 0;
+    for (const seg of operationSegments) {
+      opTotal += segmentDistance(seg);
+    }
+    return {
+      transit: Math.round(transitTotal),
+      operation: Math.round(opTotal),
+      total: Math.round(transitTotal + opTotal),
+    };
+  }, [transitLines, operationSegments]);
 
   return (
-    <Box sx={{ borderRadius: '10px', overflow: 'hidden', border: '0.5px solid #e2e8f0' }}>
-      <MapContainer
-        center={[52.0, 19.5]}
-        zoom={6}
-        style={{ height: 320, width: '100%' }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-
-        {allPositions.length > 0 && <FitBounds positions={allPositions} />}
-
-        {/* Operation route — solid blue line */}
-        {opLine.length >= 2 && (
-          <Polyline positions={opLine} color="#3b7ff5" weight={3} />
-        )}
-
-        {/* Transit: start airport → operation start — dashed grey */}
-        {transitToOp.length === 2 && (
-          <Polyline
-            positions={transitToOp}
-            color="#94a3b8"
-            weight={2}
-            dashArray="8 6"
+    <Box sx={{ bgcolor: '#fff', borderRadius: '12px', border: '0.5px solid #e2e8f0', overflow: 'hidden' }}>
+      <Box sx={{ borderBottom: '0.5px solid #e2e8f0' }}>
+        <MapContainer center={[52.0, 19.5]} zoom={6} style={{ height: 360, width: '100%' }}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-        )}
+          {allPositions.length > 0 && <FitBounds positions={allPositions} />}
 
-        {/* Transit: operation end → end airport — dashed grey */}
-        {transitFromOp.length === 2 && (
-          <Polyline
-            positions={transitFromOp}
-            color="#94a3b8"
-            weight={2}
-            dashArray="8 6"
-          />
-        )}
+          {/* Operation segments — solid colored lines */}
+          {operationSegments.map((seg, idx) => {
+            const positions = seg.map((p) => [p.lat, p.lng] as [number, number]);
+            const color = ROUTE_COLORS[idx % ROUTE_COLORS.length];
+            return positions.length >= 2 ? (
+              <Polyline key={`op-${idx}`} positions={positions} color={color} weight={4} />
+            ) : null;
+          })}
 
-        {/* Direct transit between airports (no operation points) */}
-        {directTransit.length === 2 && (
-          <Polyline
-            positions={directTransit}
-            color="#94a3b8"
-            weight={2}
-            dashArray="8 6"
-          />
-        )}
+          {/* Transit lines — dashed grey */}
+          {transitLines.map((line, idx) => (
+            <Polyline
+              key={`transit-${idx}`}
+              positions={[line.from, line.to]}
+              color="#94a3b8"
+              weight={2}
+              dashArray="8 6"
+            />
+          ))}
 
-        {/* Start airport marker — green */}
-        {startSite && (
-          <Marker position={[startSite.latitude, startSite.longitude]} icon={startIcon}>
-            <Popup><strong>Start</strong>{startSite.name}</Popup>
-          </Marker>
-        )}
+          {/* Start marker */}
+          {startSite && (
+            <Marker position={[startSite.latitude, startSite.longitude]} icon={startIcon}>
+              <Tooltip permanent direction="top" offset={[0, -18]} className="route-label">
+                Start
+              </Tooltip>
+              <Popup>
+                <strong>Start: {startSite.name}</strong>
+                <span style={{ display: 'block', fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>
+                  {startSite.latitude.toFixed(4)}, {startSite.longitude.toFixed(4)}
+                </span>
+              </Popup>
+            </Marker>
+          )}
 
-        {/* End airport marker — red */}
-        {endSite && (
-          <Marker position={[endSite.latitude, endSite.longitude]} icon={endIcon}>
-            <Popup><strong>Lądowanie</strong>{endSite.name}</Popup>
-          </Marker>
+          {/* End marker */}
+          {endSite && (
+            <Marker position={[endSite.latitude, endSite.longitude]} icon={endIcon}>
+              <Tooltip permanent direction="top" offset={[0, -18]} className="route-label">
+                Lądowanie
+              </Tooltip>
+              <Popup>
+                <strong>Lądowanie: {endSite.name}</strong>
+                <span style={{ display: 'block', fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>
+                  {endSite.latitude.toFixed(4)}, {endSite.longitude.toFixed(4)}
+                </span>
+              </Popup>
+            </Marker>
+          )}
+        </MapContainer>
+      </Box>
+
+      {/* Legend and stats */}
+      <Box sx={{ px: '16px', py: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 2, fontSize: 11, color: '#64748b', flexWrap: 'wrap' }}>
+          {operationSegments.map((_, idx) => (
+            <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: ROUTE_COLORS[idx % ROUTE_COLORS.length] }} />
+              Operacja {idx + 1}
+            </Box>
+          ))}
+          {transitLines.length > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 18, height: 0, borderTop: '2px dashed #94a3b8' }} />
+              Przelot
+            </Box>
+          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#16a34a', border: '1.5px solid #fff', boxShadow: '0 0 0 1px #16a34a' }} />
+            Start
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#dc2626', border: '1.5px solid #fff', boxShadow: '0 0 0 1px #dc2626' }} />
+            Lądowanie
+          </Box>
+        </Box>
+
+        {stats.total > 0 && (
+          <Box sx={{ display: 'flex', gap: 2, fontSize: 11 }}>
+            {stats.operation > 0 && (
+              <span style={{ color: '#3b7ff5' }}>Operacje: <strong>{stats.operation} km</strong></span>
+            )}
+            {stats.transit > 0 && (
+              <span style={{ color: '#94a3b8' }}>Przeloty: <strong style={{ color: '#475569' }}>{stats.transit} km</strong></span>
+            )}
+            <span style={{ color: '#0f172a', fontWeight: 700 }}>Σ {stats.total} km</span>
+          </Box>
         )}
-      </MapContainer>
+      </Box>
     </Box>
   );
 };
