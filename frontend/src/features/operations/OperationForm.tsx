@@ -528,11 +528,46 @@ const OperationForm: React.FC = () => {
         <OperationMap points={mapPoints} />
       </Box>
 
+      {/* Change log */}
+      {operation?.changeLog && operation.changeLog.length > 0 && (
+        <Box mt={3}>
+          <Typography variant="h6" mb={1}>
+            Historia zmian
+          </Typography>
+          <Box sx={{ bgcolor: '#fff', borderRadius: '12px', border: '0.5px solid #e2e8f0', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Pole</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Stara wartość</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Nowa wartość</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Zmienił/a</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {operation.changeLog.map((log) => (
+                  <tr key={log.id}>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9' }}>{log.fieldName}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9', color: '#94a3b8' }}>{log.oldValue || '—'}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9' }}>{log.newValue || '—'}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9', fontFamily: 'monospace', fontSize: 10 }}>{log.changedByEmail}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9', fontSize: 10 }}>{new Date(log.changedAt).toLocaleString('pl-PL')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
+        </Box>
+      )}
+
       {/* Status actions */}
       {operation && !isNew && (
         <OperationStatusActions
           operation={operation}
           onStatusChange={handleStatusChange}
+          plannedDateFrom={watch('plannedDateFrom')}
+          plannedDateTo={watch('plannedDateTo')}
         />
       )}
     </Box>

@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import {
   DataGrid,
   type GridColDef,
-  type GridSortModel,
-  type GridFilterModel,
   type GridRowParams,
+  type GridInitialState,
   GridToolbarFilterButton,
   GridToolbarQuickFilter,
 } from '@mui/x-data-grid';
@@ -48,24 +47,6 @@ function DataTable<T extends { id: number }>({
   defaultSortDirection = 'asc',
   initialFilter,
 }: DataTableProps<T>) {
-  const sortModel: GridSortModel = useMemo(() => {
-    if (!defaultSortField) return [];
-    return [{ field: defaultSortField, sort: defaultSortDirection }];
-  }, [defaultSortField, defaultSortDirection]);
-
-  const filterModel: GridFilterModel | undefined = useMemo(() => {
-    if (!initialFilter) return undefined;
-    return {
-      items: [
-        {
-          field: initialFilter.field,
-          operator: initialFilter.operator,
-          value: initialFilter.value,
-        },
-      ],
-    };
-  }, [initialFilter]);
-
   const handleRowClick = (params: GridRowParams) => {
     if (onRowClick) {
       onRowClick(params.row.id as number);
@@ -76,6 +57,31 @@ function DataTable<T extends { id: number }>({
     () => columns.map((col) => ({ filterable: true, ...col })),
     [columns],
   );
+
+  const initialState = useMemo<GridInitialState>(() => {
+    const state: GridInitialState = {
+      pagination: { paginationModel: { pageSize: 10 } },
+    };
+    if (defaultSortField) {
+      state.sorting = {
+        sortModel: [{ field: defaultSortField, sort: defaultSortDirection }],
+      };
+    }
+    if (initialFilter) {
+      state.filter = {
+        filterModel: {
+          items: [
+            {
+              field: initialFilter.field,
+              operator: initialFilter.operator,
+              value: initialFilter.value,
+            },
+          ],
+        },
+      };
+    }
+    return state;
+  }, [defaultSortField, defaultSortDirection, initialFilter]);
 
   return (
     <Box
@@ -92,25 +98,14 @@ function DataTable<T extends { id: number }>({
         loading={loading}
         autoHeight
         pageSizeOptions={[10, 25, 50]}
-        initialState={{
-          pagination: { paginationModel: { pageSize: 10 } },
-        }}
-        sortModel={sortModel}
-        filterModel={filterModel}
+        initialState={initialState}
         onRowClick={handleRowClick}
         disableRowSelectionOnClick
         disableColumnFilter={false}
         slots={{
           toolbar: CustomToolbar,
         }}
-        slotProps={{
-          filterPanel: {
-            filterFormProps: {
-              filterColumns: undefined,
-            },
-          },
-        }}
-        rowHeight={36}
+        rowHeight={42}
         columnHeaderHeight={34}
         sx={{
           border: 'none',
@@ -148,8 +143,10 @@ function DataTable<T extends { id: number }>({
             display: 'flex',
             alignItems: 'center',
             px: '13px',
-            py: 0,
+            py: '6px',
             overflow: 'visible',
+            whiteSpace: 'normal',
+            lineHeight: 1.4,
           },
           '& .MuiDataGrid-cellContent': {
             overflow: 'visible',
@@ -158,8 +155,6 @@ function DataTable<T extends { id: number }>({
           // Rows
           '& .MuiDataGrid-row': {
             cursor: onRowClick ? 'pointer' : 'default',
-            minHeight: '36px !important',
-            maxHeight: '36px !important',
             '&:hover': {
               bgcolor: '#f8fafc',
             },

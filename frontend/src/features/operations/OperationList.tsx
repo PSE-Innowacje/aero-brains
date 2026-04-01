@@ -94,6 +94,20 @@ const columns: GridColDef[] = [
     ),
   },
   {
+    field: 'proposedDateFrom',
+    headerName: 'Propon. daty',
+    width: 120,
+    renderCell: (params) => {
+      const row = params.row as FlightOperation;
+      return (
+        <span style={{ fontSize: 11 }}>
+          {row.proposedDateFrom || '—'}
+          {row.proposedDateTo && <><br />{row.proposedDateTo}</>}
+        </span>
+      );
+    },
+  },
+  {
     field: 'plannedDateFrom',
     headerName: 'Plan. daty',
     width: 120,
