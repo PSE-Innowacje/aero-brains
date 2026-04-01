@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Box, Typography } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import DataTable from '../../shared/components/DataTable';
 import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
-import MapView from '../../shared/components/MapView';
 import { api } from '../../api/client';
 import {
   OPERATION_STATUS_LABELS,
@@ -19,6 +21,17 @@ import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
 
 const ROUTE_COLORS = ['#3b7ff5', '#e04040', '#16a34a', '#d97706', '#7c3aed', '#0891b2'];
+
+// Auto-fit map bounds
+const FitBounds: React.FC<{ positions: [number, number][] }> = ({ positions }) => {
+  const map = useMap();
+  React.useEffect(() => {
+    if (positions.length > 0) {
+      map.fitBounds(L.latLngBounds(positions), { padding: [40, 40], maxZoom: 10 });
+    }
+  }, [map, positions]);
+  return null;
+};
 
 // Parse GeoJSON content to lat/lng points
 function parseGeoJsonPoints(geojson?: string): Array<{ lat: number; lng: number }> {
@@ -179,26 +192,71 @@ const OperationList: React.FC = () => {
   const scheduled = operations.filter((o) => o.status === 'SCHEDULED').length;
   const completed = operations.filter((o) => o.status === 'COMPLETED').length;
 
-  // Map data — collect all operation routes with colors
-  const mapData = useMemo(() => {
-    const allPoints: Array<{ lat: number; lng: number }> = [];
-    const allMarkers: Array<{ lat: number; lng: number; label: string }> = [];
+  // Only show these statuses on the map
+  const MAP_STATUSES = ['INTRODUCED', 'CONFIRMED', 'SCHEDULED'];
+  const STATUS_COLORS: Record<string, string> = {
+    INTRODUCED: '#3b7ff5',  // blue
+    CONFIRMED: '#16a34a',   // green
+    SCHEDULED: '#d97706',   // amber
+  };
 
-    operations.forEach((op, idx) => {
-      const points = parseGeoJsonPoints(op.geojsonContent);
-      if (points.length > 0) {
-        allPoints.push(...points);
-        // Add a marker at the start of each route
-        allMarkers.push({
-          lat: points[0].lat,
-          lng: points[0].lng,
-          label: `#${op.id} ${op.orderProjectNumber}`,
-        });
+  const mapOperations = useMemo(
+    () => operations.filter((op) => MAP_STATUSES.includes(op.status)),
+    [operations],
+  );
+
+  // Fetch geojson for map-eligible operations
+  const [routeData, setRouteData] = useState<Record<number, Array<{ lat: number; lng: number }>>>({});
+
+  useEffect(() => {
+    if (mapOperations.length === 0) return;
+    let cancelled = false;
+    const fetchRoutes = async () => {
+      const results: Record<number, Array<{ lat: number; lng: number }>> = {};
+      await Promise.all(
+        mapOperations.map(async (op) => {
+          try {
+            const geojson = await api.operations.getGeojson(op.id);
+            const points = parseGeoJsonPoints(typeof geojson === 'string' ? geojson : JSON.stringify(geojson));
+            if (points.length > 0) {
+              results[op.id] = points;
+            }
+          } catch {
+            // skip operations without geojson
+          }
+        }),
+      );
+      if (!cancelled) setRouteData(results);
+    };
+    fetchRoutes();
+    return () => { cancelled = true; };
+  }, [mapOperations]);
+
+  // Build per-route data for the map
+  const mapRoutes = useMemo(() => {
+    return mapOperations
+      .filter((op) => routeData[op.id]?.length >= 2)
+      .map((op) => ({
+        id: op.id,
+        label: `#${op.id} ${op.orderProjectNumber}`,
+        status: op.status,
+        color: STATUS_COLORS[op.status] || '#3b7ff5',
+        points: routeData[op.id],
+      }));
+  }, [mapOperations, routeData]);
+
+  // All points for bounds fitting
+  const allMapPositions = useMemo<[number, number][]>(() => {
+    const pos: [number, number][] = [];
+    for (const route of mapRoutes) {
+      for (const p of route.points) {
+        pos.push([p.lat, p.lng]);
       }
-    });
+    }
+    return pos;
+  }, [mapRoutes]);
 
-    return { points: allPoints, markers: allMarkers };
-  }, [operations]);
+  const [hoveredOpId, setHoveredOpId] = useState<number | null>(null);
 
   const handleRowClick = (id: number) => {
     navigate(`/operations/${id}`);
@@ -275,16 +333,94 @@ const OperationList: React.FC = () => {
           </Typography>
         </Box>
         <Box sx={{ p: '14px' }}>
-          {mapData.points.length > 0 ? (
-            <MapView
-              points={mapData.points}
-              markers={mapData.markers}
-              style={{ height: 320, borderRadius: 10 }}
-            />
+          {mapRoutes.length > 0 ? (
+            <Box sx={{ borderRadius: '10px', overflow: 'hidden', border: '0.5px solid #e2e8f0' }}>
+              <MapContainer center={[52.0, 19.5]} zoom={6} style={{ height: 360, width: '100%' }}>
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {allMapPositions.length > 0 && <FitBounds positions={allMapPositions} />}
+                {mapRoutes.map((route) => {
+                  const positions = route.points.map((p) => [p.lat, p.lng] as [number, number]);
+                  const start = route.points[0];
+                  const end = route.points[route.points.length - 1];
+                  const isHighlighted = hoveredOpId === route.id;
+                  const isDimmed = hoveredOpId !== null && !isHighlighted;
+                  return (
+                    <React.Fragment key={route.id}>
+                      {/* Route line */}
+                      <Polyline
+                        positions={positions}
+                        color={route.color}
+                        weight={isHighlighted ? 6 : 3}
+                        opacity={isDimmed ? 0.2 : 1}
+                        eventHandlers={{
+                          mouseover: () => setHoveredOpId(route.id),
+                          mouseout: () => setHoveredOpId(null),
+                        }}
+                      />
+                      {/* Start pin — filled circle */}
+                      <CircleMarker
+                        center={[start.lat, start.lng]}
+                        radius={isHighlighted ? 7 : 5}
+                        pathOptions={{
+                          color: '#fff',
+                          weight: 2,
+                          fillColor: route.color,
+                          fillOpacity: isDimmed ? 0.2 : 1,
+                          opacity: isDimmed ? 0.2 : 1,
+                        }}
+                      >
+                        <Popup>
+                          <strong>{route.label}</strong>
+                          Początek trasy
+                        </Popup>
+                      </CircleMarker>
+                      {/* End pin */}
+                      <CircleMarker
+                        center={[end.lat, end.lng]}
+                        radius={isHighlighted ? 6 : 4}
+                        pathOptions={{
+                          color: route.color,
+                          weight: 3,
+                          fillColor: '#fff',
+                          fillOpacity: isDimmed ? 0.2 : 1,
+                          opacity: isDimmed ? 0.2 : 1,
+                        }}
+                      >
+                        <Popup>
+                          <strong>{route.label}</strong>
+                          Koniec trasy
+                        </Popup>
+                      </CircleMarker>
+                    </React.Fragment>
+                  );
+                })}
+              </MapContainer>
+            </Box>
           ) : (
             <Typography sx={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', py: 4 }}>
               Brak danych do wyświetlenia na mapie
             </Typography>
+          )}
+
+          {/* Legend */}
+          {mapRoutes.length > 0 && (
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 1, fontSize: 11, color: '#64748b' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: '#3b7ff5' }} />
+                Wprowadzone
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: '#16a34a' }} />
+                Potwierdzone
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: '#d97706' }} />
+                Zaplanowane
+              </Box>
+            </Box>
           )}
         </Box>
       </Box>
@@ -295,6 +431,8 @@ const OperationList: React.FC = () => {
         columns={columns}
         loading={isLoading}
         onRowClick={handleRowClick}
+        onRowHover={setHoveredOpId}
+        highlightedRowId={hoveredOpId}
         defaultSortField="plannedDateFrom"
         defaultSortDirection="asc"
       />

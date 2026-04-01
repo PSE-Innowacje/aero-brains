@@ -114,6 +114,58 @@ INSERT INTO flight_operations (id, order_project_number, short_description, prop
 INSERT INTO flight_operations (id, order_project_number, short_description, proposed_date_from, proposed_date_to, planned_date_from, planned_date_to, route_length_km, status, created_by_email, created_at, updated_at) VALUES
     (NEXT VALUE FOR flight_operations_seq, 'DE-26-70002', 'Patrol odwołany z powodu warunków pogodowych', DATE '2026-05-01', DATE '2026-07-31', DATE '2026-06-01', DATE '2026-06-15', 80, 'CANCELLED', 'planner@aero.pl', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- ===================== GEOJSON ROUTES =====================
+-- Add GeoJSON LineString routes to operations for map visualization
+
+-- 1: Warszawa-Łódź (110kV)
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[20.9,52.23],[20.7,52.15],[20.5,52.05],[20.3,51.95],[20.1,51.85],[19.9,51.78]]}}' WHERE order_project_number = 'DE-26-10001';
+-- 2: Radom-Kielce (220kV)
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[21.15,51.4],[21.0,51.3],[20.85,51.2],[20.7,51.1],[20.6,50.9],[20.63,50.87]]}}' WHERE order_project_number = 'DE-26-10002';
+-- 3: Poznań-Wrocław
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[16.93,52.41],[16.95,52.2],[17.0,52.0],[17.05,51.8],[17.03,51.6],[17.02,51.4],[17.04,51.2],[17.03,51.11]]}}' WHERE order_project_number = 'CJI-5001';
+-- 4: Kozienice-Ołtarzew (400kV)
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[21.56,51.58],[21.3,51.65],[21.1,51.72],[20.9,51.78],[20.7,51.82],[20.5,51.85],[20.3,51.88],[20.15,51.9]]}}' WHERE order_project_number = 'DE-26-10003';
+-- 5: Lublin (110kV)
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[22.57,51.25],[22.4,51.2],[22.25,51.15],[22.1,51.1],[21.95,51.08],[21.8,51.05]]}}' WHERE order_project_number = 'DE-26-10004';
+-- 6: Kraków-Tarnów
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[19.94,50.06],[20.1,50.05],[20.3,50.04],[20.5,50.03],[20.7,50.02],[20.98,50.01]]}}' WHERE order_project_number = 'CJI-5002';
+-- 7: Płock-Toruń
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[19.7,52.55],[19.5,52.6],[19.3,52.7],[19.1,52.8],[18.9,52.9],[18.6,53.01]]}}' WHERE order_project_number = 'DE-26-10005';
+-- 8: Szczecin-Koszalin
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[14.55,53.43],[14.8,53.5],[15.1,53.6],[15.4,53.7],[15.7,53.8],[16.0,53.9],[16.17,54.19]]}}' WHERE order_project_number = 'DE-26-10006';
+-- 13: Warszawa-Radom (220kV) CONFIRMED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[20.9,52.23],[20.95,52.1],[21.0,51.95],[21.05,51.8],[21.1,51.65],[21.15,51.4]]}}' WHERE order_project_number = 'DE-26-30001';
+-- 14: Bełchatów-Rogowiec (400kV) CONFIRMED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[19.35,51.37],[19.4,51.33],[19.45,51.3],[19.5,51.27],[19.55,51.25],[19.6,51.22]]}}' WHERE order_project_number = 'DE-26-30002';
+-- 15: Gdańsk-Elbląg CONFIRMED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[18.65,54.35],[18.8,54.3],[19.0,54.25],[19.2,54.2],[19.4,54.18],[19.77,54.17]]}}' WHERE order_project_number = 'CJI-7001';
+-- 16: GPZ Piła CONFIRMED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[16.73,53.15],[16.8,53.18],[16.9,53.2],[17.0,53.18],[17.1,53.15]]}}' WHERE order_project_number = 'DE-26-30003';
+-- 17: Olsztyn-Ełk CONFIRMED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[20.48,53.78],[20.6,53.75],[20.8,53.7],[21.0,53.65],[21.2,53.6],[21.4,53.55],[21.5,53.5],[21.8,53.83]]}}' WHERE order_project_number = 'DE-26-30004';
+-- 18: Opole-Nysa CONFIRMED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[17.92,50.67],[17.85,50.6],[17.75,50.55],[17.65,50.5],[17.55,50.45],[17.33,50.47]]}}' WHERE order_project_number = 'CJI-7002';
+-- 19: Grudziądz-Bydgoszcz SCHEDULED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[18.77,53.48],[18.6,53.45],[18.4,53.4],[18.2,53.35],[18.0,53.15],[17.95,53.12]]}}' WHERE order_project_number = 'DE-26-40001';
+-- 20: Białystok-Suwałki SCHEDULED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[23.15,53.13],[23.1,53.25],[23.05,53.4],[23.0,53.55],[22.95,53.7],[22.93,53.84]]}}' WHERE order_project_number = 'DE-26-40002';
+-- 21: Ostrów-Pątnów (400kV) SCHEDULED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[17.8,51.65],[17.95,51.7],[18.1,51.75],[18.25,51.78],[18.4,51.8],[18.55,51.83]]}}' WHERE order_project_number = 'CJI-8001';
+-- 22: Rzeszów-Przemyśl SCHEDULED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[21.99,50.04],[22.15,50.0],[22.3,49.95],[22.45,49.9],[22.6,49.85],[22.77,49.78]]}}' WHERE order_project_number = 'DE-26-40003';
+-- 23: Siedlce-Terespol SCHEDULED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[22.29,52.17],[22.5,52.15],[22.7,52.1],[22.9,52.08],[23.1,52.05],[23.6,52.08]]}}' WHERE order_project_number = 'DE-26-40004';
+-- 24: Łódź-Piotrków PARTIALLY_COMPLETED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[19.46,51.77],[19.5,51.7],[19.55,51.6],[19.6,51.5],[19.65,51.4]]}}' WHERE order_project_number = 'DE-26-50001';
+-- 25: Katowice-Gliwice PARTIALLY_COMPLETED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[19.02,50.26],[18.95,50.27],[18.85,50.28],[18.75,50.29],[18.67,50.3]]}}' WHERE order_project_number = 'CJI-9001';
+-- 26: Jaworzno-Tarnów (220kV) COMPLETED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[19.27,50.21],[19.4,50.18],[19.6,50.15],[19.8,50.12],[20.0,50.08],[20.2,50.05],[20.4,50.03],[20.98,50.01]]}}' WHERE order_project_number = 'DE-26-60001';
+-- 27: Zielona Góra-Gorzów COMPLETED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[15.51,51.94],[15.5,52.05],[15.45,52.2],[15.4,52.35],[15.35,52.5],[15.25,52.73]]}}' WHERE order_project_number = 'DE-26-60002';
+-- 28: Wrocław-Legnica COMPLETED
+UPDATE flight_operations SET geojson_content = '{"type":"Feature","geometry":{"type":"LineString","coordinates":[[17.04,51.11],[16.9,51.12],[16.7,51.13],[16.5,51.15],[16.3,51.17],[16.16,51.21]]}}' WHERE order_project_number = 'CJI-9002';
+
 -- ===================== OPERATION ACTIVITIES =====================
 -- Operations get ids 1-30 from sequence, activities reference them
 

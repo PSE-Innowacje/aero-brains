@@ -14,6 +14,8 @@ export interface DataTableProps<T> {
   columns: GridColDef[];
   loading?: boolean;
   onRowClick?: (id: number) => void;
+  onRowHover?: (id: number | null) => void;
+  highlightedRowId?: number | null;
   defaultSortField?: string;
   defaultSortDirection?: 'asc' | 'desc';
   initialFilter?: { field: string; operator: string; value: string };
@@ -43,6 +45,8 @@ function DataTable<T extends { id: number }>({
   columns,
   loading = false,
   onRowClick,
+  onRowHover,
+  highlightedRowId,
   defaultSortField,
   defaultSortDirection = 'asc',
   initialFilter,
@@ -100,10 +104,24 @@ function DataTable<T extends { id: number }>({
         pageSizeOptions={[10, 25, 50]}
         initialState={initialState}
         onRowClick={handleRowClick}
+        getRowClassName={(params) =>
+          highlightedRowId != null && params.id === highlightedRowId ? 'row-highlighted' : ''
+        }
         disableRowSelectionOnClick
         disableColumnFilter={false}
         slots={{
           toolbar: CustomToolbar,
+        }}
+        slotProps={{
+          row: onRowHover
+            ? {
+                onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => {
+                  const rowId = Number(e.currentTarget.getAttribute('data-id'));
+                  if (!isNaN(rowId)) onRowHover(rowId);
+                },
+                onMouseLeave: () => onRowHover(null),
+              }
+            : undefined,
         }}
         rowHeight={42}
         columnHeaderHeight={34}
@@ -155,11 +173,21 @@ function DataTable<T extends { id: number }>({
           // Rows
           '& .MuiDataGrid-row': {
             cursor: onRowClick ? 'pointer' : 'default',
+            transition: 'background-color 0.15s',
             '&:hover': {
               bgcolor: '#f8fafc',
             },
             '&:last-child .MuiDataGrid-cell': {
               borderBottom: 'none',
+            },
+          },
+          // Highlighted row (from external state, e.g. map hover)
+          '& .MuiDataGrid-row.row-highlighted': {
+            bgcolor: '#dbeafe',
+            fontWeight: 700,
+            '& .MuiDataGrid-cell': {
+              bgcolor: '#dbeafe',
+              fontWeight: 700,
             },
           },
 

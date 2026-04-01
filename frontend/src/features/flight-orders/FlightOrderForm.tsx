@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -196,34 +196,50 @@ const FlightOrderForm: React.FC = () => {
     [landingSites, watchedValues.arrivalSiteId],
   );
 
-  // Resolve operation points for map from geojsonContent
-  const operationPoints = useMemo(() => {
-    const points: Array<{ lat: number; lng: number }> = [];
-    const selectedOps = allOperations.filter((op) =>
-      (watchedValues.operationIds ?? []).includes(op.id),
-    );
-    for (const op of selectedOps) {
-      if (op.geojsonContent) {
-        try {
-          const geojson = JSON.parse(op.geojsonContent);
-          if (geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)) {
-            for (const feature of geojson.features) {
-              if (feature.geometry?.type === 'Point' && Array.isArray(feature.geometry.coordinates)) {
-                points.push({ lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] });
+  // Fetch geojson for selected operations (list items don't include geojsonContent)
+  const [operationPoints, setOperationPoints] = useState<Array<{ lat: number; lng: number }>>([]);
+  const selectedOpIds = watchedValues.operationIds ?? [];
+
+  useEffect(() => {
+    if (selectedOpIds.length === 0) {
+      setOperationPoints([]);
+      return;
+    }
+    let cancelled = false;
+    const fetchRoutes = async () => {
+      const points: Array<{ lat: number; lng: number }> = [];
+      await Promise.all(
+        selectedOpIds.map(async (opId) => {
+          try {
+            const geojson = await api.operations.getGeojson(opId);
+            const str = typeof geojson === 'string' ? geojson : JSON.stringify(geojson);
+            const parsed = JSON.parse(str);
+            const geom = parsed.geometry || parsed;
+            if (geom.type === 'LineString' && Array.isArray(geom.coordinates)) {
+              for (const coord of geom.coordinates) {
+                points.push({ lat: coord[1], lng: coord[0] });
+              }
+            } else if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
+              for (const feature of parsed.features) {
+                if (feature.geometry?.type === 'Point') {
+                  points.push({ lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] });
+                } else if (feature.geometry?.type === 'LineString') {
+                  for (const coord of feature.geometry.coordinates) {
+                    points.push({ lat: coord[1], lng: coord[0] });
+                  }
+                }
               }
             }
-          } else if (geojson.type === 'LineString' && Array.isArray(geojson.coordinates)) {
-            for (const coord of geojson.coordinates) {
-              points.push({ lat: coord[1], lng: coord[0] });
-            }
+          } catch {
+            // skip operations without geojson
           }
-        } catch {
-          // skip invalid geojson
-        }
-      }
-    }
-    return points;
-  }, [allOperations, watchedValues.operationIds]);
+        }),
+      );
+      if (!cancelled) setOperationPoints(points);
+    };
+    fetchRoutes();
+    return () => { cancelled = true; };
+  }, [selectedOpIds.join(',')]);
 
   // Auto-calculate route distance when sites or operations change
   useEffect(() => {
