@@ -223,7 +223,7 @@ class FlightOperationSpec extends BaseIntegrationSpec {
 
         then:
         result.andExpect(status().isOk())
-              .andExpect(jsonPath('$').isArray())
+              .andExpect(jsonPath('$.content').isArray())
     }
 
     def "planner should read single operation details"() {

@@ -1,5 +1,7 @@
 package pl.aerobrains.orders.application
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.aerobrains.fleet.infrastructure.CrewMemberRepository
@@ -26,8 +28,9 @@ class FlightOrderService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(): List<FlightOrderListItem> {
-        return mapper.toListItems(repository.findAll())
+    fun findAll(pageable: Pageable): Page<FlightOrderListItem> {
+        return repository.findAll(pageable)
+            .map { mapper.toListItem(it) }
     }
 
     @Transactional(readOnly = true)

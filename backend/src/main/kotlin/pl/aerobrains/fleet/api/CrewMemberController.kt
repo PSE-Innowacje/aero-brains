@@ -1,6 +1,10 @@
 package pl.aerobrains.fleet.api
 
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -21,8 +25,10 @@ class CrewMemberController(
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'SUPERVISOR', 'PILOT')")
-    fun findAll(): ResponseEntity<List<CrewMemberResponse>> {
-        return ResponseEntity.ok(crewMemberService.findAll())
+    fun findAll(
+        @PageableDefault(size = 20, sort = ["email"], direction = Sort.Direction.ASC) pageable: Pageable
+    ): ResponseEntity<Page<CrewMemberResponse>> {
+        return ResponseEntity.ok(crewMemberService.findAll(pageable))
     }
 
     @GetMapping("/{id}")

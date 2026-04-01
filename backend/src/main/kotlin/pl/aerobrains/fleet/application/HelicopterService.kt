@@ -1,5 +1,7 @@
 package pl.aerobrains.fleet.application
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.aerobrains.fleet.api.CreateHelicopterRequest
@@ -20,10 +22,9 @@ class HelicopterService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(): List<HelicopterResponse> {
-        return helicopterMapper.toResponseList(
-            helicopterRepository.findAllByOrderByStatusAscRegistrationNumberAsc()
-        )
+    fun findAll(pageable: Pageable): Page<HelicopterResponse> {
+        return helicopterRepository.findAll(pageable)
+            .map { helicopterMapper.toResponse(it) }
     }
 
     @Transactional(readOnly = true)
