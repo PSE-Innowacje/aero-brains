@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Typography } from '@mui/material';
 import MapView from '../../shared/components/MapView';
 import type { LandingSite } from '../../api/types';
@@ -37,19 +37,25 @@ const FlightOrderMap: React.FC<FlightOrderMapProps> = ({
     });
   }
 
-  const center: [number, number] = startSite
-    ? [startSite.latitude, startSite.longitude]
-    : endSite
-      ? [endSite.latitude, endSite.longitude]
-      : hasPoints
-        ? [operationPoints![0].lat, operationPoints![0].lng]
-        : [52.0, 19.5];
+  // Build a complete route line: start site → operation points → end site
+  const routeLine = useMemo(() => {
+    const line: Array<{ lat: number; lng: number }> = [];
+    if (startSite) {
+      line.push({ lat: startSite.latitude, lng: startSite.longitude });
+    }
+    if (hasPoints) {
+      line.push(...operationPoints!);
+    }
+    if (endSite) {
+      line.push({ lat: endSite.latitude, lng: endSite.longitude });
+    }
+    return line.length >= 2 ? line : undefined;
+  }, [startSite, endSite, operationPoints, hasPoints]);
 
   return (
     <MapView
-      center={center}
       zoom={10}
-      points={hasPoints ? operationPoints : undefined}
+      points={routeLine}
       markers={markers.length > 0 ? markers : undefined}
     />
   );

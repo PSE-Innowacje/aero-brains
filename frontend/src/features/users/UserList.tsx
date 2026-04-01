@@ -61,7 +61,7 @@ const UserList: React.FC = () => {
   const showAddButton = user?.role && canEdit(user.role, 'administration');
 
   return (
-    <Box>
+    <>
       <PageHeader
         title="Użytkownicy"
         subtitle="Zarządzanie kontami"
@@ -87,6 +87,7 @@ const UserList: React.FC = () => {
           ) : undefined
         }
       />
+      <Box sx={{ p: 3 }}>
       <DataTable
         rows={users}
         columns={columns}
@@ -95,7 +96,8 @@ const UserList: React.FC = () => {
         defaultSortField="email"
         defaultSortDirection="asc"
       />
-    </Box>
+      </Box>
+    </>
   );
 };
 

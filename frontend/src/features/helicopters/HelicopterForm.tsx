@@ -104,13 +104,14 @@ const HelicopterForm: React.FC = () => {
   }
 
   return (
-    <Box>
+    <>
       <PageHeader
         title={isNew ? 'Nowy helikopter' : 'Edycja helikoptera'}
         subtitle={!isNew ? helicopter?.registrationNumber : undefined}
         onBack={() => navigate('/helicopters')}
       />
 
+      <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
         {/* Left column — form */}
         <Box sx={{ flex: 1, minWidth: 0, maxWidth: 600 }}>
@@ -292,7 +293,8 @@ const HelicopterForm: React.FC = () => {
           </Card>
         )}
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 };
 

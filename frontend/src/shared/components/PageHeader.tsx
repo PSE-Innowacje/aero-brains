@@ -19,9 +19,6 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, action, onBack
       borderBottom: '1px solid #e2e8f0',
       px: '24px',
       py: '13px',
-      mx: -3,
-      mt: -3,
-      mb: 2.5,
     }}
   >
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

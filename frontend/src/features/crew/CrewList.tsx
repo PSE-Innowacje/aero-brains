@@ -78,7 +78,7 @@ const CrewList: React.FC = () => {
   const showAddButton = user?.role && canEdit(user.role, 'administration');
 
   return (
-    <Box>
+    <>
       <PageHeader
         title="Członkowie załogi"
         subtitle="Lista personelu lotniczego"
@@ -104,6 +104,7 @@ const CrewList: React.FC = () => {
           ) : undefined
         }
       />
+      <Box sx={{ p: 3 }}>
       <DataTable
         rows={crewMembers}
         columns={columns}
@@ -112,7 +113,8 @@ const CrewList: React.FC = () => {
         defaultSortField="email"
         defaultSortDirection="asc"
       />
-    </Box>
+      </Box>
+    </>
   );
 };
 

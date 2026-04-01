@@ -104,11 +104,12 @@ const CrewForm: React.FC = () => {
   }
 
   return (
-    <Box maxWidth={600}>
+    <>
       <PageHeader
         title={isNew ? 'Nowy członek załogi' : 'Edycja członka załogi'}
         onBack={() => navigate('/crew')}
       />
+      <Box sx={{ p: 3, maxWidth: 600 }}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
@@ -255,7 +256,8 @@ const CrewForm: React.FC = () => {
           )}
         </Stack>
       </form>
-    </Box>
+      </Box>
+    </>
   );
 };
 

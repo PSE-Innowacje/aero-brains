@@ -206,11 +206,12 @@ const OperationForm: React.FC = () => {
   }
 
   return (
-    <Box maxWidth={800}>
+    <>
       <PageHeader
         title={isNew ? 'Nowa operacja' : `Operacja #${operation?.id ?? ''}`}
         onBack={() => navigate('/operations')}
       />
+      <Box sx={{ p: 3, maxWidth: 800 }}>
 
       {operation && (
         <Box mb={2}>
@@ -563,7 +564,8 @@ const OperationForm: React.FC = () => {
           plannedDateTo={watch('plannedDateTo')}
         />
       )}
-    </Box>
+      </Box>
+    </>
   );
 };
 

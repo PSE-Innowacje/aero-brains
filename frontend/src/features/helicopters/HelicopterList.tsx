@@ -81,7 +81,7 @@ const HelicopterList: React.FC = () => {
   const showAddButton = user?.role && canEdit(user.role, 'administration');
 
   return (
-    <Box>
+    <>
       <PageHeader
         title="Helikoptery"
         subtitle="Flota helikopterów"
@@ -107,6 +107,7 @@ const HelicopterList: React.FC = () => {
           ) : undefined
         }
       />
+      <Box sx={{ p: 3 }}>
       <DataTable
         rows={helicopters}
         columns={columns}
@@ -115,7 +116,8 @@ const HelicopterList: React.FC = () => {
         defaultSortField="status"
         defaultSortDirection="asc"
       />
-    </Box>
+      </Box>
+    </>
   );
 };
 

@@ -207,7 +207,7 @@ const OperationList: React.FC = () => {
   const showAddButton = user?.role && canEdit(user.role, 'operations');
 
   return (
-    <Box>
+    <>
       <PageHeader
         title="Lista operacji lotniczych"
         subtitle="Planowane operacje i ich statusy"
@@ -233,6 +233,7 @@ const OperationList: React.FC = () => {
           ) : undefined
         }
       />
+      <Box sx={{ p: 3 }}>
 
       {/* Stat cards */}
       <Box
@@ -297,7 +298,8 @@ const OperationList: React.FC = () => {
         defaultSortField="plannedDateFrom"
         defaultSortDirection="asc"
       />
-    </Box>
+      </Box>
+    </>
   );
 };
 

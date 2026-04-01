@@ -98,11 +98,12 @@ const UserForm: React.FC = () => {
   }
 
   return (
-    <Box maxWidth={600}>
+    <>
       <PageHeader
         title={isNew ? 'Nowy użytkownik' : 'Edycja użytkownika'}
         onBack={() => navigate('/users')}
       />
+      <Box sx={{ p: 3, maxWidth: 600 }}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
@@ -199,7 +200,8 @@ const UserForm: React.FC = () => {
           )}
         </Stack>
       </form>
-    </Box>
+      </Box>
+    </>
   );
 };
 

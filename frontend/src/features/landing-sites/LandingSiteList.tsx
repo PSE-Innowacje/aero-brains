@@ -48,7 +48,7 @@ const LandingSiteList: React.FC = () => {
   const showAddButton = user?.role && canEdit(user.role, 'administration');
 
   return (
-    <Box>
+    <>
       <PageHeader
         title="Lądowiska planowe"
         subtitle="Dostępne lądowiska"
@@ -74,6 +74,7 @@ const LandingSiteList: React.FC = () => {
           ) : undefined
         }
       />
+      <Box sx={{ p: 3 }}>
       <DataTable
         rows={landingSites}
         columns={columns}
@@ -82,7 +83,8 @@ const LandingSiteList: React.FC = () => {
         defaultSortField="name"
         defaultSortDirection="asc"
       />
-    </Box>
+      </Box>
+    </>
   );
 };
 

@@ -274,7 +274,7 @@ const AppShell: React.FC = () => {
         }}
       >
         {/* Page content */}
-        <Box sx={{ p: 3, flex: 1, overflow: 'auto' }}>
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
           <Outlet />
         </Box>
       </Box>

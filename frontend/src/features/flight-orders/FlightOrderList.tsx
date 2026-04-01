@@ -106,7 +106,7 @@ const FlightOrderList: React.FC = () => {
   const showAddButton = user?.role && canEdit(user.role, 'flightOrders');
 
   return (
-    <Box>
+    <>
       <PageHeader
         title="Lista zleceń"
         subtitle="Zlecenia na lot helikopterem"
@@ -132,6 +132,7 @@ const FlightOrderList: React.FC = () => {
           ) : undefined
         }
       />
+      <Box sx={{ p: 3 }}>
       <DataTable
         rows={flightOrders}
         columns={columns}
@@ -141,7 +142,8 @@ const FlightOrderList: React.FC = () => {
         defaultSortDirection="asc"
         initialFilter={{ field: 'status', operator: 'equals', value: 'SUBMITTED' }}
       />
-    </Box>
+      </Box>
+    </>
   );
 };
 

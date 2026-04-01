@@ -99,11 +99,12 @@ const LandingSiteForm: React.FC = () => {
   }
 
   return (
-    <Box maxWidth={600}>
+    <>
       <PageHeader
         title={isNew ? 'Nowe lądowisko' : 'Edycja lądowiska'}
         onBack={() => navigate('/landing-sites')}
       />
+      <Box sx={{ p: 3, maxWidth: 600 }}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
@@ -177,7 +178,8 @@ const LandingSiteForm: React.FC = () => {
           )}
         </Stack>
       </form>
-    </Box>
+      </Box>
+    </>
   );
 };
 

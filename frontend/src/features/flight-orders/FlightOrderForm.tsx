@@ -31,6 +31,7 @@ import {
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit } from '../../shared/utils/permissions';
+import { calculateRouteDistanceKm, type KmlPoint } from '../../shared/utils/kml';
 
 const FlightOrderForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -223,6 +224,24 @@ const FlightOrderForm: React.FC = () => {
     return points;
   }, [allOperations, watchedValues.operationIds]);
 
+  // Auto-calculate route distance when sites or operations change
+  useEffect(() => {
+    const routePoints: KmlPoint[] = [];
+    if (startSite) {
+      routePoints.push({ lat: startSite.latitude, lng: startSite.longitude });
+    }
+    if (operationPoints.length > 0) {
+      routePoints.push(...operationPoints);
+    }
+    if (endSite) {
+      routePoints.push({ lat: endSite.latitude, lng: endSite.longitude });
+    }
+    if (routePoints.length >= 2) {
+      const distance = calculateRouteDistanceKm(routePoints);
+      setValue('estimatedRouteLengthKm', distance);
+    }
+  }, [startSite, endSite, operationPoints, setValue]);
+
   // Check if any validation warnings exist
   const hasValidationWarnings = useMemo(() => {
     const flightDay = watchedValues.plannedStartTime
@@ -298,11 +317,12 @@ const FlightOrderForm: React.FC = () => {
   const showActualFields = flightOrder && ['ACCEPTED', 'PARTIALLY_COMPLETED', 'COMPLETED', 'NOT_COMPLETED'].includes(flightOrder.status);
 
   return (
-    <Box maxWidth={800}>
+    <>
       <PageHeader
         title={isNew ? 'Nowe zlecenie lotu' : `Zlecenie #${flightOrder?.id ?? ''}`}
         onBack={() => navigate('/flight-orders')}
       />
+      <Box sx={{ p: 3, maxWidth: 800 }}>
 
       {flightOrder && (
         <Box mb={2}>
@@ -542,7 +562,7 @@ const FlightOrderForm: React.FC = () => {
                             key={opId}
                             label={
                               op
-                                ? `${op.orderProjectNumber} - ${op.shortDescription}`
+                                ? `${op.orderProjectNumber}${op.shortDescription ? ' - ' + op.shortDescription : ''}`
                                 : opId
                             }
                             size="small"
@@ -554,7 +574,7 @@ const FlightOrderForm: React.FC = () => {
                 >
                   {availableOperations.map((op) => (
                     <MenuItem key={op.id} value={op.id}>
-                      {op.orderProjectNumber} - {op.shortDescription}
+                      {op.orderProjectNumber}{op.shortDescription ? ` - ${op.shortDescription}` : ''}
                     </MenuItem>
                   ))}
                 </Select>
@@ -679,7 +699,8 @@ const FlightOrderForm: React.FC = () => {
           )}
         </Stack>
       </form>
-    </Box>
+      </Box>
+    </>
   );
 };
 
