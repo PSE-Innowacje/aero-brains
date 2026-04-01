@@ -401,7 +401,7 @@ const OperationList: React.FC = () => {
                         positions={positions}
                         color={route.color}
                         weight={isHighlighted ? 6 : 3}
-                        opacity={isDimmed ? 0.2 : 1}
+                        opacity={isDimmed ? 0.45 : 1}
                         eventHandlers={{
                           mouseover: () => setHoveredOpId(route.id),
                           mouseout: () => setHoveredOpId(null),
@@ -415,8 +415,8 @@ const OperationList: React.FC = () => {
                           color: '#fff',
                           weight: 2,
                           fillColor: route.color,
-                          fillOpacity: isDimmed ? 0.2 : 1,
-                          opacity: isDimmed ? 0.2 : 1,
+                          fillOpacity: isDimmed ? 0.45 : 1,
+                          opacity: isDimmed ? 0.45 : 1,
                         }}
                       >
                         <Tooltip permanent direction="top" offset={[0, -8]} className="route-label">
@@ -435,8 +435,8 @@ const OperationList: React.FC = () => {
                           color: route.color,
                           weight: 3,
                           fillColor: '#fff',
-                          fillOpacity: isDimmed ? 0.2 : 1,
-                          opacity: isDimmed ? 0.2 : 1,
+                          fillOpacity: isDimmed ? 0.45 : 1,
+                          opacity: isDimmed ? 0.45 : 1,
                         }}
                       >
                         <Popup>
