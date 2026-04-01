@@ -22,9 +22,8 @@ import {
 } from '@mui/material';
 import PageHeader from '../../shared/components/PageHeader';
 import { operationSchema, type OperationFormData } from './operationSchema';
-import OperationMap from './OperationMap';
 import OperationStatusActions from './OperationStatusActions';
-import KmlUpload from './KmlUpload';
+import MapEditor from './MapEditor';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
@@ -54,7 +53,6 @@ const OperationForm: React.FC = () => {
   const role = user?.role;
 
   const [geojsonContent, setGeojsonContent] = useState<string>('');
-  const [kmlFileName, setKmlFileName] = useState<string>('');
 
   // Parse geojsonContent into points for the map
   const mapPoints = (() => {
@@ -62,18 +60,24 @@ const OperationForm: React.FC = () => {
     try {
       const geojson = JSON.parse(geojsonContent);
       const points: Array<{ lat: number; lng: number }> = [];
-      if (geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)) {
-        for (const feature of geojson.features) {
-          if (feature.geometry?.type === 'Point' && Array.isArray(feature.geometry.coordinates)) {
-            points.push({ lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] });
+      const extractFromGeometry = (geometry: any) => {
+        if (!geometry) return;
+        if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) {
+          points.push({ lat: geometry.coordinates[1], lng: geometry.coordinates[0] });
+        } else if (geometry.type === 'LineString' && Array.isArray(geometry.coordinates)) {
+          for (const coord of geometry.coordinates) {
+            points.push({ lat: coord[1], lng: coord[0] });
           }
         }
-      } else if (geojson.type === 'Feature' && geojson.geometry?.type === 'Point') {
-        points.push({ lat: geojson.geometry.coordinates[1], lng: geojson.geometry.coordinates[0] });
-      } else if (geojson.type === 'LineString' && Array.isArray(geojson.coordinates)) {
-        for (const coord of geojson.coordinates) {
-          points.push({ lat: coord[1], lng: coord[0] });
+      };
+      if (geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)) {
+        for (const feature of geojson.features) {
+          extractFromGeometry(feature.geometry);
         }
+      } else if (geojson.type === 'Feature') {
+        extractFromGeometry(geojson.geometry);
+      } else {
+        extractFromGeometry(geojson);
       }
       return points;
     } catch {
@@ -144,25 +148,14 @@ const OperationForm: React.FC = () => {
       if (operation.geojsonContent) {
         setGeojsonContent(operation.geojsonContent);
       }
-      if (operation.kmlFileName) {
-        setKmlFileName(operation.kmlFileName);
-      }
     }
   }, [operation, reset]);
 
   const saveMutation = useMutation({
     mutationFn: (data: OperationFormData) => {
-      const payload = {
-        ...data,
-        proposedDateFrom: data.proposedDateFrom || undefined,
-        proposedDateTo: data.proposedDateTo || undefined,
-        additionalInfo: data.additionalInfo || undefined,
-        plannedDateFrom: data.plannedDateFrom || undefined,
-        plannedDateTo: data.plannedDateTo || undefined,
-        postCompletionNotes: data.postCompletionNotes || undefined,
-        geojsonContent: geojsonContent || undefined,
-        kmlFileName: kmlFileName || undefined,
-      };
+      const coordinates = mapPoints.length > 0
+        ? mapPoints.map((p) => ({ latitude: p.lat, longitude: p.lng }))
+        : undefined;
       if (isNew) {
         return api.operations.create({
           orderProjectNumber: data.orderProjectNumber,
@@ -172,11 +165,19 @@ const OperationForm: React.FC = () => {
           proposedDateTo: data.proposedDateTo || undefined,
           additionalInfo: data.additionalInfo || undefined,
           contactEmails: data.contactEmails || undefined,
-          kmlFileName: kmlFileName || undefined,
-          kmlContent: undefined, // KML content sent separately if needed
+          coordinates,
         });
       }
-      return api.operations.update(operationId!, payload);
+      return api.operations.update(operationId!, {
+        ...data,
+        proposedDateFrom: data.proposedDateFrom || undefined,
+        proposedDateTo: data.proposedDateTo || undefined,
+        additionalInfo: data.additionalInfo || undefined,
+        plannedDateFrom: data.plannedDateFrom || undefined,
+        plannedDateTo: data.plannedDateTo || undefined,
+        postCompletionNotes: data.postCompletionNotes || undefined,
+        coordinates,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
@@ -364,25 +365,31 @@ const OperationForm: React.FC = () => {
             )}
           />
 
-          {/* KML file upload */}
-          <KmlUpload
+          {/* Interactive map for route */}
+          <MapEditor
             points={mapPoints}
             onPointsChange={(points, distanceKm) => {
-              // Convert points back to GeoJSON for storage
               const geojson = {
                 type: 'FeatureCollection',
-                features: points.map((p) => ({
-                  type: 'Feature',
-                  geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
-                  properties: {},
-                })),
+                features: points.length > 1
+                  ? [{
+                      type: 'Feature',
+                      geometry: {
+                        type: 'LineString',
+                        coordinates: points.map((p) => [p.lng, p.lat]),
+                      },
+                      properties: {},
+                    }]
+                  : points.map((p) => ({
+                      type: 'Feature',
+                      geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+                      properties: {},
+                    })),
               };
               setGeojsonContent(JSON.stringify(geojson));
               setValue('routeLengthKm', distanceKm);
             }}
             disabled={readOnly}
-            fileName={kmlFileName}
-            onFileNameChange={setKmlFileName}
           />
 
           <Controller
@@ -513,14 +520,6 @@ const OperationForm: React.FC = () => {
           )}
         </Stack>
       </form>
-
-      {/* Map */}
-      <Box mt={3}>
-        <Typography variant="h6" mb={1}>
-          Mapa trasy
-        </Typography>
-        <OperationMap points={mapPoints} />
-      </Box>
 
       {/* Change log */}
       {operation?.changeLog && operation.changeLog.length > 0 && (

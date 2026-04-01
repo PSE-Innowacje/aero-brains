@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.aerobrains.operations.api.AddCommentRequest
 import pl.aerobrains.operations.api.ChangeStatusRequest
+import pl.aerobrains.operations.api.CoordinateDto
 import pl.aerobrains.operations.api.CreateFlightOperationRequest
 import pl.aerobrains.operations.api.FlightOperationListItem
 import pl.aerobrains.operations.api.FlightOperationMapper
@@ -20,6 +21,7 @@ import pl.aerobrains.operations.domain.OperationStatus
 import pl.aerobrains.operations.infrastructure.FlightOperationRepository
 import pl.aerobrains.operations.infrastructure.FlightOperationSpecifications
 import pl.aerobrains.operations.infrastructure.KmlParser
+import pl.aerobrains.operations.infrastructure.KmlPoint
 import pl.aerobrains.shared.exception.BusinessRuleViolationException
 import pl.aerobrains.shared.exception.EntityNotFoundException
 import pl.aerobrains.shared.security.UserRole
@@ -65,8 +67,8 @@ class FlightOperationService(
 
         validateAndSetActivities(operation, request.activities)
 
-        if (request.kmlContent != null) {
-            processKml(operation, request.kmlContent)
+        if (!request.coordinates.isNullOrEmpty()) {
+            processCoordinates(operation, request.coordinates)
         }
 
         return mapper.toResponse(repository.save(operation))
@@ -84,10 +86,8 @@ class FlightOperationService(
         operation.proposedDateFrom = request.proposedDateFrom
         operation.proposedDateTo = request.proposedDateTo
 
-        if (request.kmlContent != null) {
-            operation.kmlFileName = request.kmlFileName
-            operation.kmlContent = request.kmlContent
-            processKml(operation, request.kmlContent)
+        if (!request.coordinates.isNullOrEmpty()) {
+            processCoordinates(operation, request.coordinates)
         }
 
         if (currentUserRole == UserRole.SUPERVISOR) {
@@ -156,10 +156,15 @@ class FlightOperationService(
             .orElseThrow { EntityNotFoundException("FlightOperation", id) }
     }
 
-    private fun processKml(operation: FlightOperation, kmlContent: String) {
-        val points = kmlParser.parsePoints(kmlContent)
+    private fun processCoordinates(operation: FlightOperation, coordinates: List<CoordinateDto>) {
+        val points = coordinates.map { KmlPoint(latitude = it.latitude, longitude = it.longitude) }
+        if (points.size > 5000) {
+            throw BusinessRuleViolationException("Route cannot contain more than 5000 points (found ${points.size})")
+        }
         operation.routeLengthKm = routeCalculationService.calculateRouteLength(points)
         operation.geojsonContent = kmlParser.toGeoJson(points)
+        operation.kmlContent = kmlParser.generateKml(points)
+        operation.kmlFileName = "operation-route.kml"
     }
 
     private fun validateAndSetActivities(operation: FlightOperation, entries: List<ActivityTypeEntry>) {

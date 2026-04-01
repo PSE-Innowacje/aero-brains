@@ -426,7 +426,7 @@ export const api = {
 
     update: async (
       id: number,
-      data: Partial<FlightOperation>,
+      data: Record<string, unknown>,
     ): Promise<FlightOperation> => {
       if (USE_MOCK) {
         await delay();

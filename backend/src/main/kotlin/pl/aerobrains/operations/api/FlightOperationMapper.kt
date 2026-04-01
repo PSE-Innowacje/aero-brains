@@ -23,6 +23,8 @@ interface FlightOperationMapper {
     @Mapping(target = "changeLog", expression = "java(new java.util.ArrayList<>())")
     @Mapping(target = "activities", expression = "java(new java.util.ArrayList<>())")
     @Mapping(target = "geojsonContent", ignore = true)
+    @Mapping(target = "kmlFileName", ignore = true)
+    @Mapping(target = "kmlContent", ignore = true)
     fun toEntity(request: CreateFlightOperationRequest): FlightOperation
 
     @Mapping(target = "activities", source = "activities")

@@ -30,6 +30,26 @@ class KmlParser(
         return points
     }
 
+    fun generateKml(points: List<KmlPoint>): String {
+        val coordString = points.joinToString("\n            ") { "${it.longitude},${it.latitude},0" }
+        val geometryTag = if (points.size == 1) {
+            "<Point><coordinates>${points[0].longitude},${points[0].latitude},0</coordinates></Point>"
+        } else {
+            "<LineString><coordinates>\n            $coordString\n          </coordinates></LineString>"
+        }
+
+        return """<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Operation Route</name>
+    <Placemark>
+      <name>Route</name>
+      $geometryTag
+    </Placemark>
+  </Document>
+</kml>"""
+    }
+
     fun toGeoJson(points: List<KmlPoint>): String {
         val geojson = if (points.size == 1) {
             mapOf(

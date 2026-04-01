@@ -10,6 +10,11 @@ import pl.aerobrains.operations.domain.OperationStatus
 import java.time.LocalDateTime
 import java.time.LocalDate
 
+data class CoordinateDto(
+    val latitude: Double,
+    val longitude: Double
+)
+
 data class ActivityTypeEntry(
     @field:NotNull
     val activityType: ActivityType,
@@ -27,8 +32,7 @@ data class CreateFlightOperationRequest(
     @field:Size(max = 100)
     val shortDescription: String,
 
-    val kmlFileName: String? = null,
-    val kmlContent: String? = null,
+    val coordinates: List<CoordinateDto>? = null,
 
     val proposedDateFrom: LocalDate? = null,
     val proposedDateTo: LocalDate? = null,
@@ -53,8 +57,7 @@ data class UpdateFlightOperationRequest(
     @field:Size(max = 100)
     val shortDescription: String,
 
-    val kmlFileName: String? = null,
-    val kmlContent: String? = null,
+    val coordinates: List<CoordinateDto>? = null,
 
     val proposedDateFrom: LocalDate? = null,
     val proposedDateTo: LocalDate? = null,
