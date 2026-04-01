@@ -1,6 +1,6 @@
 import type { UserRole } from '../../api/types';
 
-type AccessLevel = 'full' | 'readonly' | 'none';
+type AccessLevel = 'full' | 'edit' | 'readonly' | 'none';
 
 interface MenuPermission {
   roles: UserRole[];
@@ -31,10 +31,19 @@ export const menuPermissions: Record<string, MenuPermission> = {
     access: {
       ADMINISTRATOR: 'readonly',
       PLANNER: 'none',
-      SUPERVISOR: 'full',
+      SUPERVISOR: 'edit',
       PILOT: 'full',
     },
   },
+};
+
+/**
+ * Check if a role can create new records in a menu section (full access only).
+ */
+export const canCreate = (role: UserRole, menuKey: string): boolean => {
+  const perm = menuPermissions[menuKey];
+  if (!perm) return false;
+  return perm.access[role] === 'full';
 };
 
 /** Status codes in which a given role can edit an operation */
@@ -66,7 +75,7 @@ export const canAccessMenu = (role: UserRole, menuKey: string): boolean => {
 export const canEdit = (role: UserRole, menuKey: string): boolean => {
   const perm = menuPermissions[menuKey];
   if (!perm) return false;
-  return perm.access[role] === 'full';
+  return perm.access[role] === 'full' || perm.access[role] === 'edit';
 };
 
 /**

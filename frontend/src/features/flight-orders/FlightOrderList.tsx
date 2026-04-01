@@ -12,7 +12,7 @@ import {
   type FlightOrderStatus,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
-import { canEdit } from '../../shared/utils/permissions';
+import { canCreate } from '../../shared/utils/permissions';
 
 const FlightOrderList: React.FC = () => {
   const navigate = useNavigate();
@@ -103,7 +103,7 @@ const FlightOrderList: React.FC = () => {
     navigate(`/flight-orders/${id}`);
   };
 
-  const showAddButton = user?.role && canEdit(user.role, 'flightOrders');
+  const showAddButton = user?.role && canCreate(user.role, 'flightOrders');
 
   return (
     <>

@@ -30,7 +30,7 @@ import {
   type CrewMember,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
-import { canEdit } from '../../shared/utils/permissions';
+import { canEdit, canCreate } from '../../shared/utils/permissions';
 import { calculateRouteDistanceKm, type KmlPoint } from '../../shared/utils/kml';
 
 const FlightOrderForm: React.FC = () => {
@@ -90,7 +90,8 @@ const FlightOrderForm: React.FC = () => {
   );
 
   const hasEditAccess = role ? canEdit(role, 'flightOrders') : false;
-  const readOnly = isNew ? !hasEditAccess : !hasEditAccess;
+  const hasCreateAccess = role ? canCreate(role, 'flightOrders') : false;
+  const readOnly = isNew ? !hasCreateAccess : !hasEditAccess;
 
   const {
     control,
