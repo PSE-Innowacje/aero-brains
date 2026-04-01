@@ -139,7 +139,7 @@ const FlightOrderList: React.FC = () => {
         onRowClick={handleRowClick}
         defaultSortField="plannedStartTime"
         defaultSortDirection="asc"
-        initialFilter={{ field: 'status', operator: 'equals', value: 'PENDING_APPROVAL' }}
+        initialFilter={{ field: 'status', operator: 'equals', value: 'SUBMITTED' }}
       />
     </Box>
   );

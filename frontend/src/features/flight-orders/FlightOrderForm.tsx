@@ -263,7 +263,7 @@ const FlightOrderForm: React.FC = () => {
       if (isNew) {
         return api.flightOrders.create({
           ...payload,
-          status: 'PENDING_APPROVAL' as FlightOrderStatus,
+          status: 'SUBMITTED' as FlightOrderStatus,
         });
       }
       return api.flightOrders.update(flightOrderId!, payload);

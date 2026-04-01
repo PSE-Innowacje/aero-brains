@@ -39,8 +39,8 @@ export const menuPermissions: Record<string, MenuPermission> = {
 
 /** Status codes in which a given role can edit an operation */
 export const operationEditableStatuses: Record<string, string[]> = {
-  PLANNER: ['SUBMITTED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED'],
-  SUPERVISOR: ['SUBMITTED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED', 'COMPLETED', 'CANCELLED'],
+  PLANNER: ['INTRODUCED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED'],
+  SUPERVISOR: ['INTRODUCED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED', 'COMPLETED', 'CANCELLED'],
 };
 
 /** Fields that a planner cannot modify on an operation */

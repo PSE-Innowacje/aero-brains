@@ -235,7 +235,7 @@ export const mockOperations: Operation[] = [
         authorEmail: 'ewa.dabrowska@aero.pl',
       },
     ],
-    status: 'SUBMITTED',
+    status: 'INTRODUCED',
     createdByEmail: 'ewa.dabrowska@aero.pl',
     contactEmails: 'jan.kowalski@aero.pl',
     changeLog: [],
@@ -367,7 +367,7 @@ export const mockFlightOrders: FlightOrder[] = [
     plannedStartTime: '2026-04-14T07:00:00Z',
     plannedEndTime: '2026-04-14T11:00:00Z',
     pilotId: 1,
-    status: 'SUBMITTED',
+    status: 'INTRODUCED',
     helicopterId: 1,
     crewMemberIds: [1, 3, 5],
     crewWeight: 237, // 82+65+90
@@ -383,7 +383,7 @@ export const mockFlightOrders: FlightOrder[] = [
     plannedStartTime: '2026-04-20T06:30:00Z',
     plannedEndTime: '2026-04-20T12:00:00Z',
     pilotId: 1,
-    status: 'PENDING_APPROVAL',
+    status: 'SUBMITTED',
     helicopterId: 2,
     crewMemberIds: [1, 4],
     crewWeight: 140, // 82+58

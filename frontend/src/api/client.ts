@@ -610,7 +610,7 @@ export const api = {
       if (USE_MOCK) {
         await delay();
         const idx = _flightOrders.findIndex((fo) => fo.id === id);
-        if (idx !== -1) _flightOrders[idx] = { ..._flightOrders[idx], status: 'PENDING_APPROVAL' };
+        if (idx !== -1) _flightOrders[idx] = { ..._flightOrders[idx], status: 'SUBMITTED' };
         return;
       }
       await http.post(`/flight-orders/${id}/submit`);
@@ -679,7 +679,7 @@ export const api = {
         return { ..._flightOrders[idx] };
       }
       const statusEndpointMap: Partial<Record<FlightOrderStatus, string>> = {
-        PENDING_APPROVAL: 'submit',
+        SUBMITTED: 'submit',
         ACCEPTED: 'accept',
         REJECTED: 'reject',
         COMPLETED: 'settle-complete',

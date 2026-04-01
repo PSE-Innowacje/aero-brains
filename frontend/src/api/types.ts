@@ -47,7 +47,7 @@ export interface User {
 
 // Operation status — backend string values
 export type OperationStatus =
-  | 'SUBMITTED'
+  | 'INTRODUCED'
   | 'REJECTED'
   | 'CONFIRMED'
   | 'SCHEDULED'
@@ -56,7 +56,7 @@ export type OperationStatus =
   | 'CANCELLED';
 
 export const OPERATION_STATUS_LABELS: Record<OperationStatus, string> = {
-  SUBMITTED: 'Wprowadzone',
+  INTRODUCED: 'Wprowadzone',
   REJECTED: 'Odrzucone',
   CONFIRMED: 'Potwierdzone do planu',
   SCHEDULED: 'Zaplanowane do zlecenia',
@@ -136,8 +136,8 @@ export type Operation = FlightOperation;
 
 // Flight order status — backend string values
 export type FlightOrderStatus =
+  | 'INTRODUCED'
   | 'SUBMITTED'
-  | 'PENDING_APPROVAL'
   | 'REJECTED'
   | 'ACCEPTED'
   | 'PARTIALLY_COMPLETED'
@@ -145,8 +145,8 @@ export type FlightOrderStatus =
   | 'NOT_COMPLETED';
 
 export const FLIGHT_ORDER_STATUS_LABELS: Record<FlightOrderStatus, string> = {
-  SUBMITTED: 'Wprowadzone',
-  PENDING_APPROVAL: 'Przekazane do akceptacji',
+  INTRODUCED: 'Wprowadzone',
+  SUBMITTED: 'Przekazane do akceptacji',
   REJECTED: 'Odrzucone',
   ACCEPTED: 'Zaakceptowane',
   PARTIALLY_COMPLETED: 'Zrealizowane w części',

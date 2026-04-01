@@ -18,7 +18,7 @@ const OperationStatusActions: React.FC<OperationStatusActionsProps> = ({
 
   const buttons: React.ReactNode[] = [];
 
-  if (role === 'SUPERVISOR' && status === 'SUBMITTED') {
+  if (role === 'SUPERVISOR' && status === 'INTRODUCED') {
     buttons.push(
       <Button
         key="reject"
@@ -39,7 +39,7 @@ const OperationStatusActions: React.FC<OperationStatusActionsProps> = ({
     );
   }
 
-  if (role === 'PLANNER' && ['SUBMITTED', 'CONFIRMED', 'SCHEDULED'].includes(status)) {
+  if (role === 'PLANNER' && ['INTRODUCED', 'CONFIRMED', 'SCHEDULED'].includes(status)) {
     buttons.push(
       <Button
         key="resign"

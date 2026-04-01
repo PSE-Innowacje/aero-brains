@@ -18,8 +18,8 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
 
   const buttons: React.ReactNode[] = [];
 
-  // Supervisor actions when status = PENDING_APPROVAL (Przekazane do akceptacji)
-  if (role === 'SUPERVISOR' && status === 'PENDING_APPROVAL') {
+  // Supervisor actions when status = SUBMITTED (Przekazane do akceptacji)
+  if (role === 'SUPERVISOR' && status === 'SUBMITTED') {
     buttons.push(
       <Button
         key="reject"

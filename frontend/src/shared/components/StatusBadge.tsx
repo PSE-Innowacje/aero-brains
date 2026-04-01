@@ -7,7 +7,7 @@ interface StatusBadgeProps {
 
 const statusStyles: Record<string, { color: string; bg: string }> = {
   // Operation statuses
-  SUBMITTED:             { color: '#1d4ed8', bg: '#dbeafe' },
+  INTRODUCED:            { color: '#1d4ed8', bg: '#dbeafe' },
   REJECTED:              { color: '#b91c1c', bg: '#fee2e2' },
   CONFIRMED:             { color: '#1a7f4e', bg: '#e6f4ed' },
   SCHEDULED:             { color: '#b45309', bg: '#fef3c7' },
@@ -15,7 +15,7 @@ const statusStyles: Record<string, { color: string; bg: string }> = {
   COMPLETED:             { color: '#0f766e', bg: '#ccfbf1' },
   CANCELLED:             { color: '#64748b', bg: '#f1f5f9' },
   // Flight order statuses
-  PENDING_APPROVAL:      { color: '#b45309', bg: '#fef3c7' },
+  SUBMITTED:             { color: '#b45309', bg: '#fef3c7' },
   ACCEPTED:              { color: '#1a7f4e', bg: '#e6f4ed' },
   NOT_COMPLETED:         { color: '#64748b', bg: '#f1f5f9' },
   // Helicopter statuses
