@@ -317,58 +317,48 @@ class FlightOrderSpec extends BaseIntegrationSpec {
         def order = createAcceptedOrder()
         def token = pilotToken()
 
-        // set actual times first
-        def updateReq = [
-                plannedStartTime      : "2026-07-15T08:00:00",
-                plannedEndTime        : "2026-07-15T12:00:00",
-                helicopterId          : order.helicopterId,
-                departureSiteId       : order.departureSiteId,
-                arrivalSiteId         : order.arrivalSiteId,
-                operationIds          : order.operationIds,
-                estimatedRouteLengthKm: order.estimatedRouteLengthKm,
-                actualStartTime       : "2026-07-15T08:15:00",
-                actualEndTime         : "2026-07-15T11:45:00"
+        def settleReq = [
+                actualStartTime      : "2026-07-15T08:15:00",
+                actualEndTime        : "2026-07-15T11:45:00",
+                actualRouteLengthKm  : 95
         ]
-        mockMvc.perform(put("/api/flight-orders/${order.id}").header("Authorization", "Bearer $token")
-                .contentType(MediaType.APPLICATION_JSON).content(toJson(updateReq)))
 
         when:
         def result = mockMvc.perform(
                 post("/api/flight-orders/${order.id}/settle-complete").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(settleReq))
         )
 
         then:
         result.andExpect(status().isNoContent())
 
-        and: "order status is COMPLETED"
+        and: "order status is COMPLETED and actualRouteLengthKm is set"
         def updated = mockMvc.perform(
                 get("/api/flight-orders/${order.id}").header("Authorization", "Bearer $token")
         ).andReturn()
-        parseResponse(updated).status == "COMPLETED"
+        def resp = parseResponse(updated)
+        resp.status == "COMPLETED"
+        resp.actualRouteLengthKm == 95
     }
 
-    def "pilot should settle order as partially completed"() {
+    def "pilot should settle order as partially completed with per-operation statuses"() {
         given:
         def order = createAcceptedOrder()
         def token = pilotToken()
 
-        def updateReq = [
-                plannedStartTime      : "2026-07-15T08:00:00",
-                plannedEndTime        : "2026-07-15T12:00:00",
-                helicopterId          : order.helicopterId,
-                departureSiteId       : order.departureSiteId,
-                arrivalSiteId         : order.arrivalSiteId,
-                operationIds          : order.operationIds,
-                estimatedRouteLengthKm: order.estimatedRouteLengthKm,
-                actualStartTime       : "2026-07-15T08:15:00",
-                actualEndTime         : "2026-07-15T10:00:00"
+        def settleReq = [
+                actualStartTime      : "2026-07-15T08:15:00",
+                actualEndTime        : "2026-07-15T10:00:00",
+                actualRouteLengthKm  : 50,
+                operationStatuses    : order.operationIds.collectEntries { opId ->
+                    [(opId): "PARTIALLY_COMPLETED"]
+                }
         ]
-        mockMvc.perform(put("/api/flight-orders/${order.id}").header("Authorization", "Bearer $token")
-                .contentType(MediaType.APPLICATION_JSON).content(toJson(updateReq)))
 
         when:
         def result = mockMvc.perform(
                 post("/api/flight-orders/${order.id}/settle-partial").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(settleReq))
         )
 
         then:
@@ -411,14 +401,15 @@ class FlightOrderSpec extends BaseIntegrationSpec {
         }
     }
 
-    def "should not settle order without actual times for complete"() {
+    def "should not settle order without request body"() {
         given:
         def order = createAcceptedOrder()
         def token = pilotToken()
 
-        when: "try to settle without setting actual times"
+        when: "try to settle without providing settlement data"
         def result = mockMvc.perform(
                 post("/api/flight-orders/${order.id}/settle-complete").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON)
         )
 
         then:
@@ -435,9 +426,16 @@ class FlightOrderSpec extends BaseIntegrationSpec {
         ).andReturn()
         def order = parseResponse(createResult)
 
+        def settleReq = [
+                actualStartTime    : "2026-07-15T08:15:00",
+                actualEndTime      : "2026-07-15T11:45:00",
+                actualRouteLengthKm: 95
+        ]
+
         when:
         def result = mockMvc.perform(
                 post("/api/flight-orders/${order.id}/settle-complete").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(settleReq))
         )
 
         then:
@@ -447,11 +445,17 @@ class FlightOrderSpec extends BaseIntegrationSpec {
     def "supervisor should not settle orders"() {
         given:
         def order = createAcceptedOrder()
+        def settleReq = [
+                actualStartTime    : "2026-07-15T08:15:00",
+                actualEndTime      : "2026-07-15T11:45:00",
+                actualRouteLengthKm: 95
+        ]
 
         when:
         def result = mockMvc.perform(
                 post("/api/flight-orders/${order.id}/settle-complete")
                         .header("Authorization", "Bearer ${supervisorToken()}")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(settleReq))
         )
 
         then:

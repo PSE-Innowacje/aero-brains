@@ -67,7 +67,10 @@ class FlightOrder(
     var actualStartTime: LocalDateTime? = null,
 
     @Column(name = "actual_end_time")
-    var actualEndTime: LocalDateTime? = null
+    var actualEndTime: LocalDateTime? = null,
+
+    @Column(name = "actual_route_length_km")
+    var actualRouteLengthKm: Int? = null
 ) : BaseEntity() {
 
     fun submit() {
@@ -85,15 +88,27 @@ class FlightOrder(
         status = OrderStatus.ACCEPTED
     }
 
+    fun fillActualData(startTime: LocalDateTime, endTime: LocalDateTime, routeLengthKm: Int) {
+        if (!endTime.isAfter(startTime)) {
+            throw BusinessRuleViolationException("Actual end time must be after start time")
+        }
+        if (routeLengthKm < 1) {
+            throw BusinessRuleViolationException("Actual route length must be at least 1 km")
+        }
+        actualStartTime = startTime
+        actualEndTime = endTime
+        actualRouteLengthKm = routeLengthKm
+    }
+
     fun settlePartial() {
         requireTransition(OrderStatus.PARTIALLY_COMPLETED)
-        validateActualTimes()
+        validateActualData()
         status = OrderStatus.PARTIALLY_COMPLETED
     }
 
     fun settleComplete() {
         requireTransition(OrderStatus.COMPLETED)
-        validateActualTimes()
+        validateActualData()
         status = OrderStatus.COMPLETED
     }
 
@@ -110,10 +125,15 @@ class FlightOrder(
         }
     }
 
-    private fun validateActualTimes() {
+    private fun validateActualData() {
         if (actualStartTime == null || actualEndTime == null) {
             throw BusinessRuleViolationException(
                 "Actual start and end times are required before completing an order"
+            )
+        }
+        if (actualRouteLengthKm == null) {
+            throw BusinessRuleViolationException(
+                "Actual route length is required before completing an order"
             )
         }
     }

@@ -182,8 +182,19 @@ export interface FlightOrder {
   estimatedRouteLengthKm: number; // km
   actualStartTime?: string;
   actualEndTime?: string;
+  actualRouteLengthKm?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// Settlement
+export type OperationSettlementStatus = 'COMPLETED' | 'PARTIALLY_COMPLETED' | 'NOT_COMPLETED';
+
+export interface SettleFlightOrderRequest {
+  actualStartTime: string;
+  actualEndTime: string;
+  actualRouteLengthKm: number;
+  operationStatuses?: Record<number, OperationSettlementStatus>;
 }
 
 // Auth

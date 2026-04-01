@@ -79,15 +79,23 @@ class FlightOrderController(
 
     @PostMapping("/{id}/settle-partial")
     @PreAuthorize("hasRole('PILOT')")
-    fun settlePartial(@PathVariable id: Long, authentication: Authentication): ResponseEntity<Void> {
-        service.settlePartial(id, authentication.name)
+    fun settlePartial(
+        @PathVariable id: Long,
+        @Valid @RequestBody request: SettleFlightOrderRequest,
+        authentication: Authentication
+    ): ResponseEntity<Void> {
+        service.settlePartial(id, request, authentication.name)
         return ResponseEntity.noContent().build()
     }
 
     @PostMapping("/{id}/settle-complete")
     @PreAuthorize("hasRole('PILOT')")
-    fun settleComplete(@PathVariable id: Long, authentication: Authentication): ResponseEntity<Void> {
-        service.settleComplete(id, authentication.name)
+    fun settleComplete(
+        @PathVariable id: Long,
+        @Valid @RequestBody request: SettleFlightOrderRequest,
+        authentication: Authentication
+    ): ResponseEntity<Void> {
+        service.settleComplete(id, request, authentication.name)
         return ResponseEntity.noContent().build()
     }
 

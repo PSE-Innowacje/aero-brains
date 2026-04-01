@@ -22,12 +22,14 @@ import { flightOrderSchema, type FlightOrderFormData } from './flightOrderSchema
 import FlightOrderValidation from './FlightOrderValidation';
 import FlightOrderMap from './FlightOrderMap';
 import FlightOrderStatusActions from './FlightOrderStatusActions';
+import SettlementDialog from './SettlementDialog';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
   FLIGHT_ORDER_STATUS_LABELS,
   type FlightOrderStatus,
   type CrewMember,
+  type SettleFlightOrderRequest,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import { canEdit, canCreate } from '../../shared/utils/permissions';
@@ -146,6 +148,7 @@ const FlightOrderForm: React.FC = () => {
       estimatedRouteLengthKm: 0,
       actualStartTime: '',
       actualEndTime: '',
+      actualRouteLengthKm: 0,
     },
   });
 
@@ -180,6 +183,7 @@ const FlightOrderForm: React.FC = () => {
         estimatedRouteLengthKm: flightOrder.estimatedRouteLengthKm,
         actualStartTime: flightOrder.actualStartTime ?? '',
         actualEndTime: flightOrder.actualEndTime ?? '',
+        actualRouteLengthKm: flightOrder.actualRouteLengthKm ?? 0,
       });
     }
   }, [flightOrder, reset]);
@@ -353,10 +357,26 @@ const FlightOrderForm: React.FC = () => {
     },
   });
 
-  // Status mutation
+  // Status mutation (for non-settlement transitions: SUBMITTED, ACCEPTED, REJECTED, NOT_COMPLETED)
   const statusMutation = useMutation({
     mutationFn: (newStatus: FlightOrderStatus) =>
       api.flightOrders.updateStatus(flightOrderId!, newStatus),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flightOrders'] });
+      navigate('/flight-orders');
+    },
+  });
+
+  // Settlement mutation (COMPLETED / PARTIALLY_COMPLETED — with actual data)
+  const [settlementType, setSettlementType] = useState<'COMPLETED' | 'PARTIALLY_COMPLETED' | null>(null);
+
+  const settleMutation = useMutation({
+    mutationFn: ({ type, data }: { type: 'COMPLETED' | 'PARTIALLY_COMPLETED'; data: SettleFlightOrderRequest }) => {
+      if (type === 'COMPLETED') {
+        return api.flightOrders.settleComplete(flightOrderId!, data);
+      }
+      return api.flightOrders.settlePartial(flightOrderId!, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flightOrders'] });
       navigate('/flight-orders');
@@ -369,6 +389,17 @@ const FlightOrderForm: React.FC = () => {
 
   const handleStatusChange = (newStatus: FlightOrderStatus) => {
     statusMutation.mutate(newStatus);
+  };
+
+  const handleSettle = (type: 'COMPLETED' | 'PARTIALLY_COMPLETED') => {
+    setSettlementType(type);
+  };
+
+  const handleSettlementConfirm = (data: SettleFlightOrderRequest) => {
+    if (settlementType) {
+      settleMutation.mutate({ type: settlementType, data });
+    }
+    setSettlementType(null);
   };
 
   if (!isNew && isLoading) {
@@ -779,6 +810,23 @@ const FlightOrderForm: React.FC = () => {
                   />
                 )}
               />
+
+              <Controller
+                name="actualRouteLengthKm"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    label="Rzeczywista długość trasy (km)"
+                    type="number"
+                    error={!!errors.actualRouteLengthKm}
+                    helperText={errors.actualRouteLengthKm?.message}
+                    fullWidth
+                    disabled={readOnly}
+                  />
+                )}
+              />
             </>
           )}
 
@@ -803,6 +851,7 @@ const FlightOrderForm: React.FC = () => {
             <FlightOrderStatusActions
               flightOrder={flightOrder}
               onStatusChange={handleStatusChange}
+              onSettle={handleSettle}
             />
           )}
 
@@ -832,6 +881,18 @@ const FlightOrderForm: React.FC = () => {
         </Stack>
       </form>
       </Box>
+
+      {/* Settlement dialog */}
+      {flightOrder && settlementType && (
+        <SettlementDialog
+          open={true}
+          type={settlementType}
+          flightOrder={flightOrder}
+          operations={allOperations}
+          onConfirm={handleSettlementConfirm}
+          onCancel={() => setSettlementType(null)}
+        />
+      )}
     </>
   );
 };

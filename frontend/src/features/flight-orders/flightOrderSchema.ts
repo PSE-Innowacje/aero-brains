@@ -34,6 +34,18 @@ export const flightOrderSchema = z.object({
     .min(0, 'Wymagana liczba całkowita'),
   actualStartTime: z.string().optional().or(z.literal('')),
   actualEndTime: z.string().optional().or(z.literal('')),
+  actualRouteLengthKm: z.number().int().min(0).optional(),
 });
 
 export type FlightOrderFormData = z.infer<typeof flightOrderSchema>;
+
+export const settleFlightOrderSchema = z.object({
+  actualStartTime: z.string().min(1, 'Rzeczywista data startu jest wymagana'),
+  actualEndTime: z.string().min(1, 'Rzeczywista data lądowania jest wymagana'),
+  actualRouteLengthKm: z
+    .number({ error: 'Rzeczywista długość trasy jest wymagana' })
+    .int()
+    .min(1, 'Rzeczywista długość trasy musi wynosić co najmniej 1 km'),
+});
+
+export type SettleFlightOrderFormData = z.infer<typeof settleFlightOrderSchema>;

@@ -10,6 +10,7 @@ import pl.aerobrains.orders.api.CreateFlightOrderRequest
 import pl.aerobrains.orders.api.FlightOrderListItem
 import pl.aerobrains.orders.api.FlightOrderMapper
 import pl.aerobrains.orders.api.FlightOrderResponse
+import pl.aerobrains.orders.api.SettleFlightOrderRequest
 import pl.aerobrains.orders.api.UpdateFlightOrderRequest
 import pl.aerobrains.orders.domain.FlightOrder
 import pl.aerobrains.orders.domain.OrderStatus
@@ -91,6 +92,7 @@ class FlightOrderService(
         order.crewWeight = crewWeight
         order.actualStartTime = request.actualStartTime
         order.actualEndTime = request.actualEndTime
+        order.actualRouteLengthKm = request.actualRouteLengthKm
 
         return mapper.toResponse(repository.save(order))
     }
@@ -113,15 +115,15 @@ class FlightOrderService(
         repository.save(order)
     }
 
-    fun settlePartial(id: Long, pilotEmail: String) {
+    fun settlePartial(id: Long, request: SettleFlightOrderRequest, pilotEmail: String) {
         val order = getOrder(id)
-        settlementService.settlePartial(order, pilotEmail)
+        settlementService.settlePartial(order, request, pilotEmail)
         repository.save(order)
     }
 
-    fun settleComplete(id: Long, pilotEmail: String) {
+    fun settleComplete(id: Long, request: SettleFlightOrderRequest, pilotEmail: String) {
         val order = getOrder(id)
-        settlementService.settleComplete(order, pilotEmail)
+        settlementService.settleComplete(order, request, pilotEmail)
         repository.save(order)
     }
 

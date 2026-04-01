@@ -6,11 +6,13 @@ import { useAuth } from '../../auth/AuthContext';
 interface FlightOrderStatusActionsProps {
   flightOrder: FlightOrder;
   onStatusChange: (newStatus: FlightOrderStatus) => void;
+  onSettle: (type: 'COMPLETED' | 'PARTIALLY_COMPLETED') => void;
 }
 
 const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
   flightOrder,
   onStatusChange,
+  onSettle,
 }) => {
   const { user } = useAuth();
   const role = user?.role?.toUpperCase();
@@ -61,7 +63,7 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
         key="partial"
         variant="contained"
         color="warning"
-        onClick={() => onStatusChange('PARTIALLY_COMPLETED')}
+        onClick={() => onSettle('PARTIALLY_COMPLETED')}
       >
         Zrealizowane w części
       </Button>,
@@ -69,7 +71,7 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
         key="full"
         variant="contained"
         color="success"
-        onClick={() => onStatusChange('COMPLETED')}
+        onClick={() => onSettle('COMPLETED')}
       >
         Zrealizowane w całości
       </Button>,

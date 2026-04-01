@@ -23,6 +23,7 @@ import type {
   LoginResponse,
   CommentResponse,
   Page,
+  SettleFlightOrderRequest,
 } from './types';
 
 // ── Toggle: set to true to use in-memory mock data instead of real API ──
@@ -651,24 +652,24 @@ export const api = {
       await http.post(`/flight-orders/${id}/reject`);
     },
 
-    settleComplete: async (id: number): Promise<void> => {
+    settleComplete: async (id: number, data: SettleFlightOrderRequest): Promise<void> => {
       if (USE_MOCK) {
         await delay();
         const idx = _flightOrders.findIndex((fo) => fo.id === id);
-        if (idx !== -1) _flightOrders[idx] = { ..._flightOrders[idx], status: 'COMPLETED' };
+        if (idx !== -1) _flightOrders[idx] = { ..._flightOrders[idx], status: 'COMPLETED', ...data };
         return;
       }
-      await http.post(`/flight-orders/${id}/settle-complete`);
+      await http.post(`/flight-orders/${id}/settle-complete`, data);
     },
 
-    settlePartial: async (id: number): Promise<void> => {
+    settlePartial: async (id: number, data: SettleFlightOrderRequest): Promise<void> => {
       if (USE_MOCK) {
         await delay();
         const idx = _flightOrders.findIndex((fo) => fo.id === id);
-        if (idx !== -1) _flightOrders[idx] = { ..._flightOrders[idx], status: 'PARTIALLY_COMPLETED' };
+        if (idx !== -1) _flightOrders[idx] = { ..._flightOrders[idx], status: 'PARTIALLY_COMPLETED', ...data };
         return;
       }
-      await http.post(`/flight-orders/${id}/settle-partial`);
+      await http.post(`/flight-orders/${id}/settle-partial`, data);
     },
 
     settleNotCompleted: async (id: number): Promise<void> => {
@@ -681,7 +682,9 @@ export const api = {
       await http.post(`/flight-orders/${id}/settle-not-completed`);
     },
 
-    // Legacy helper
+    // Legacy helper — only for status transitions that don't require a body
+    // (SUBMITTED, ACCEPTED, REJECTED, NOT_COMPLETED).
+    // For COMPLETED/PARTIALLY_COMPLETED use settleComplete/settlePartial directly.
     updateStatus: async (
       id: number,
       status: FlightOrderStatus,
@@ -697,8 +700,6 @@ export const api = {
         SUBMITTED: 'submit',
         ACCEPTED: 'accept',
         REJECTED: 'reject',
-        COMPLETED: 'settle-complete',
-        PARTIALLY_COMPLETED: 'settle-partial',
         NOT_COMPLETED: 'settle-not-completed',
       };
       const endpoint = statusEndpointMap[status];
