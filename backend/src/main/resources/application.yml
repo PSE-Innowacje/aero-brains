@@ -23,5 +23,5 @@ server:
 
 app:
   jwt:
-    secret: aero-brains-jwt-secret-key-change-in-production-min-256-bits-long
+    secret: ${APP_JWT_SECRET:aero-brains-jwt-secret-key-change-in-production-min-256-bits-long}
     expiration-ms: 86400000

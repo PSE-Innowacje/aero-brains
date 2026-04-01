@@ -72,7 +72,7 @@ class GlobalExceptionHandler {
             ErrorResponse(
                 status = 409,
                 error = "Conflict",
-                message = "Data integrity violation: ${ex.mostSpecificCause.message}",
+                message = "Data integrity violation: a conflicting record already exists",
                 path = request.requestURI
             )
         )

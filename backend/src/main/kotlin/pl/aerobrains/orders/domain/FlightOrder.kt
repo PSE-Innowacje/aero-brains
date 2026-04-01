@@ -50,12 +50,12 @@ class FlightOrder(
     @Column(name = "arrival_site_id", nullable = false)
     var arrivalSiteId: Long,
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "flight_order_operations", joinColumns = [JoinColumn(name = "flight_order_id")])
     @Column(name = "flight_operation_id")
     var operationIds: MutableSet<Long> = mutableSetOf(),
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "flight_order_crew", joinColumns = [JoinColumn(name = "flight_order_id")])
     @Column(name = "crew_member_id")
     var crewMemberIds: MutableSet<Long> = mutableSetOf(),

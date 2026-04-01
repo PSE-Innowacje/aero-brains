@@ -22,6 +22,11 @@ class FlightOrderSettlementService(
             throw BusinessRuleViolationException("Operation statuses must cover all linked operations")
         }
 
+        val allCompleted = opStatuses.values.all { it == OperationSettlementStatus.COMPLETED }
+        if (allCompleted) {
+            throw BusinessRuleViolationException("All operations are COMPLETED. Use full settlement instead.")
+        }
+
         order.fillActualData(request.actualStartTime, request.actualEndTime, request.actualRouteLengthKm)
         order.settlePartial()
 

@@ -22,8 +22,8 @@ interface LandingSiteMapper {
 
     fun toCoordinates(request: CreateLandingSiteRequest): Coordinates {
         return Coordinates(
-            latitude = request.latitude.toBigDecimal(),
-            longitude = request.longitude.toBigDecimal()
+            latitude = java.math.BigDecimal.valueOf(request.latitude),
+            longitude = java.math.BigDecimal.valueOf(request.longitude)
         )
     }
 }

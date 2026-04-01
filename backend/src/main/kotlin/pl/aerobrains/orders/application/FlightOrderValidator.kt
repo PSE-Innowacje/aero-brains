@@ -34,7 +34,7 @@ class FlightOrderValidator(
             )
         }
 
-        // 2. Pilot must have valid license
+        // 2. Pilot must have valid license and training
         val pilot = crewMemberRepository.findById(pilotId)
             .orElseThrow { EntityNotFoundException("CrewMember (pilot)", pilotId) }
         if (pilot.licenseExpiryDate != null && pilot.licenseExpiryDate!!.isBefore(plannedFlightDate)) {
@@ -42,12 +42,22 @@ class FlightOrderValidator(
                 "Pilot ${pilot.firstName} ${pilot.lastName} license expires on ${pilot.licenseExpiryDate}, before flight date $plannedFlightDate"
             )
         }
+        if (pilot.trainingExpiryDate.isBefore(plannedFlightDate)) {
+            throw BusinessRuleViolationException(
+                "Pilot ${pilot.firstName} ${pilot.lastName} training expires on ${pilot.trainingExpiryDate}, before flight date $plannedFlightDate"
+            )
+        }
 
-        // 3. All crew must have valid training
+        // 3. All crew must have valid training (batch fetch)
+        val crewMembers = crewMemberRepository.findAllById(crewMemberIds)
+        if (crewMembers.size != crewMemberIds.size) {
+            val foundIds = crewMembers.map { it.id }.toSet()
+            val missingIds = crewMemberIds - foundIds
+            throw EntityNotFoundException("CrewMember", missingIds.first())
+        }
+
         var totalWeight = pilot.weight
-        for (memberId in crewMemberIds) {
-            val member = crewMemberRepository.findById(memberId)
-                .orElseThrow { EntityNotFoundException("CrewMember", memberId) }
+        for (member in crewMembers) {
             if (member.trainingExpiryDate.isBefore(plannedFlightDate)) {
                 throw BusinessRuleViolationException(
                     "Crew member ${member.firstName} ${member.lastName} training expires on ${member.trainingExpiryDate}, before flight date $plannedFlightDate"
@@ -56,14 +66,22 @@ class FlightOrderValidator(
             totalWeight += member.weight
         }
 
-        // 4. Crew weight must not exceed helicopter max
+        // 4. Crew count must not exceed helicopter max (pilot + crew)
+        val totalCrewCount = 1 + crewMemberIds.size
+        if (totalCrewCount > helicopter.maxCrewCount) {
+            throw BusinessRuleViolationException(
+                "Total crew count ($totalCrewCount) exceeds helicopter max capacity (${helicopter.maxCrewCount})"
+            )
+        }
+
+        // 5. Crew weight must not exceed helicopter max
         if (totalWeight > helicopter.maxCrewWeight) {
             throw BusinessRuleViolationException(
                 "Crew weight ($totalWeight kg) exceeds helicopter max capacity (${helicopter.maxCrewWeight} kg)"
             )
         }
 
-        // 5. Route must not exceed helicopter range
+        // 6. Route must not exceed helicopter range
         if (estimatedRouteLengthKm > helicopter.rangeKm) {
             throw BusinessRuleViolationException(
                 "Estimated route length ($estimatedRouteLengthKm km) exceeds helicopter range (${helicopter.rangeKm} km)"

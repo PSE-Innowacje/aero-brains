@@ -58,8 +58,8 @@ class FlightOrderController(
 
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('PILOT')")
-    fun submit(@PathVariable id: Long): ResponseEntity<Void> {
-        service.submit(id)
+    fun submit(@PathVariable id: Long, authentication: Authentication): ResponseEntity<Void> {
+        service.submit(id, authentication.name)
         return ResponseEntity.noContent().build()
     }
 

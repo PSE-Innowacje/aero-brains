@@ -15,8 +15,12 @@ class KmlParser(
 ) {
 
     fun parsePoints(kmlContent: String): List<KmlPoint> {
-        val factory = DocumentBuilderFactory.newInstance()
-        factory.isNamespaceAware = true
+        val factory = DocumentBuilderFactory.newInstance().apply {
+            isNamespaceAware = true
+            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+            setFeature("http://xml.org/sax/features/external-general-entities", false)
+            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+        }
         val builder = factory.newDocumentBuilder()
         val document = builder.parse(org.xml.sax.InputSource(StringReader(kmlContent)))
 
