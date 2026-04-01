@@ -17,7 +17,6 @@ import {
   Card,
   CardMedia,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageHeader from '../../shared/components/PageHeader';
 import { helicopterSchema, type HelicopterFormData } from './helicopterSchema';
 import { api } from '../../api/client';
@@ -106,16 +105,10 @@ const HelicopterForm: React.FC = () => {
 
   return (
     <Box>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/helicopters')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
       <PageHeader
         title={isNew ? 'Nowy helikopter' : 'Edycja helikoptera'}
         subtitle={!isNew ? helicopter?.registrationNumber : undefined}
+        onBack={() => navigate('/helicopters')}
       />
 
       <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>

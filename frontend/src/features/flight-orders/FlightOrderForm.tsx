@@ -17,7 +17,6 @@ import {
   Chip,
   Divider,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageHeader from '../../shared/components/PageHeader';
 import { flightOrderSchema, type FlightOrderFormData } from './flightOrderSchema';
 import FlightOrderValidation from './FlightOrderValidation';
@@ -73,7 +72,7 @@ const FlightOrderForm: React.FC = () => {
 
   // Active helicopters only
   const activeHelicopters = useMemo(
-    () => allHelicopters.filter((h) => h.status === 'active'),
+    () => allHelicopters.filter((h) => h.status === 'ACTIVE'),
     [allHelicopters],
   );
 
@@ -85,7 +84,7 @@ const FlightOrderForm: React.FC = () => {
 
   // Pilots from crew members
   const pilots = useMemo(
-    () => crewMembers.filter((c) => c.role === 'pilot'),
+    () => crewMembers.filter((c) => c.role === 'PILOT'),
     [crewMembers],
   );
 
@@ -300,15 +299,9 @@ const FlightOrderForm: React.FC = () => {
 
   return (
     <Box maxWidth={800}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/flight-orders')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
       <PageHeader
         title={isNew ? 'Nowe zlecenie lotu' : `Zlecenie #${flightOrder?.id ?? ''}`}
+        onBack={() => navigate('/flight-orders')}
       />
 
       {flightOrder && (

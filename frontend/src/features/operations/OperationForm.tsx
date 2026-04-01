@@ -20,7 +20,6 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageHeader from '../../shared/components/PageHeader';
 import { operationSchema, type OperationFormData } from './operationSchema';
 import OperationMap from './OperationMap';
@@ -208,15 +207,9 @@ const OperationForm: React.FC = () => {
 
   return (
     <Box maxWidth={800}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/operations')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
       <PageHeader
         title={isNew ? 'Nowa operacja' : `Operacja #${operation?.id ?? ''}`}
+        onBack={() => navigate('/operations')}
       />
 
       {operation && (

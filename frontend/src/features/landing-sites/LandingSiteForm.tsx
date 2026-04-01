@@ -10,7 +10,6 @@ import {
   Typography,
   Stack,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageHeader from '../../shared/components/PageHeader';
 import { landingSiteSchema, type LandingSiteFormData } from './landingSiteSchema';
 import { api } from '../../api/client';
@@ -101,15 +100,9 @@ const LandingSiteForm: React.FC = () => {
 
   return (
     <Box maxWidth={600}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/landing-sites')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
       <PageHeader
         title={isNew ? 'Nowe lądowisko' : 'Edycja lądowiska'}
+        onBack={() => navigate('/landing-sites')}
       />
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>

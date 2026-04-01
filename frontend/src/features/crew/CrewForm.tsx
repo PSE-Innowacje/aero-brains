@@ -15,7 +15,6 @@ import {
   FormHelperText,
   Stack,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageHeader from '../../shared/components/PageHeader';
 import { crewSchema, type CrewFormData } from './crewSchema';
 import { api } from '../../api/client';
@@ -106,15 +105,9 @@ const CrewForm: React.FC = () => {
 
   return (
     <Box maxWidth={600}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/crew')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
       <PageHeader
         title={isNew ? 'Nowy członek załogi' : 'Edycja członka załogi'}
+        onBack={() => navigate('/crew')}
       />
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>

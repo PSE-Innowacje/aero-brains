@@ -15,7 +15,6 @@ import {
   FormHelperText,
   Stack,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PageHeader from '../../shared/components/PageHeader';
 import { userSchema, type UserFormData } from './userSchema';
 import { api } from '../../api/client';
@@ -100,15 +99,9 @@ const UserForm: React.FC = () => {
 
   return (
     <Box maxWidth={600}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/users')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
       <PageHeader
         title={isNew ? 'Nowy użytkownik' : 'Edycja użytkownika'}
+        onBack={() => navigate('/users')}
       />
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
