@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import DataTable from '../../shared/components/DataTable';
 import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
+import FilterBar from '../../shared/components/FilterBar';
 import { api } from '../../api/client';
 import {
   OPERATION_STATUS_LABELS,
@@ -257,6 +258,23 @@ const OperationList: React.FC = () => {
   }, [mapRoutes]);
 
   const [hoveredOpId, setHoveredOpId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('CONFIRMED');
+
+  const STATUS_FILTER_OPTIONS = [
+    { value: 'all', label: 'Wszystkie' },
+    { value: 'INTRODUCED', label: 'Wprowadzone', color: '#1d4ed8' },
+    { value: 'REJECTED', label: 'Odrzucone', color: '#b91c1c' },
+    { value: 'CONFIRMED', label: 'Potwierdzone', color: '#16a34a' },
+    { value: 'SCHEDULED', label: 'Zaplanowane', color: '#d97706' },
+    { value: 'PARTIALLY_COMPLETED', label: 'Częściowo zreal.', color: '#7c3aed' },
+    { value: 'COMPLETED', label: 'Zrealizowane', color: '#0f766e' },
+    { value: 'CANCELLED', label: 'Rezygnacja', color: '#64748b' },
+  ];
+
+  const filteredOperations = useMemo(
+    () => statusFilter === 'all' ? operations : operations.filter((o) => o.status === statusFilter),
+    [operations, statusFilter],
+  );
 
   const handleRowClick = (id: number) => {
     navigate(`/operations/${id}`);
@@ -425,9 +443,17 @@ const OperationList: React.FC = () => {
         </Box>
       </Box>
 
+      {/* Status filter */}
+      <FilterBar
+        label="Status"
+        options={STATUS_FILTER_OPTIONS}
+        value={statusFilter}
+        onChange={setStatusFilter}
+      />
+
       {/* Operations table */}
       <DataTable
-        rows={operations}
+        rows={filteredOperations}
         columns={columns}
         loading={isLoading}
         onRowClick={handleRowClick}

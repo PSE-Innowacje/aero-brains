@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Box } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import DataTable from '../../shared/components/DataTable';
+import FilterBar from '../../shared/components/FilterBar';
 import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
@@ -65,14 +66,29 @@ const columns: GridColDef[] = [
   },
 ];
 
+const statusFilterOptions = [
+  { value: 'all', label: 'Wszystkie' },
+  { value: 'ACTIVE', label: 'Aktywny', color: '#16a34a' },
+  { value: 'INACTIVE', label: 'Nieaktywny', color: '#64748b' },
+];
+
 const HelicopterList: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const { data: helicopters = [], isLoading } = useQuery({
     queryKey: ['helicopters'],
     queryFn: api.helicopters.getAll,
   });
+
+  const filteredHelicopters = useMemo(
+    () =>
+      statusFilter === 'all'
+        ? helicopters
+        : helicopters.filter((h: { status: string }) => h.status === statusFilter),
+    [helicopters, statusFilter],
+  );
 
   const handleRowClick = (id: number) => {
     navigate(`/helicopters/${id}`);
@@ -108,8 +124,14 @@ const HelicopterList: React.FC = () => {
         }
       />
       <Box sx={{ p: 3 }}>
+      <FilterBar
+        label="Status"
+        options={statusFilterOptions}
+        value={statusFilter}
+        onChange={setStatusFilter}
+      />
       <DataTable
-        rows={helicopters}
+        rows={filteredHelicopters}
         columns={columns}
         loading={isLoading}
         onRowClick={handleRowClick}

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Box } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import DataTable from '../../shared/components/DataTable';
+import FilterBar from '../../shared/components/FilterBar';
 import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
@@ -62,14 +63,29 @@ const columns: GridColDef[] = [
   },
 ];
 
+const roleFilterOptions = [
+  { value: 'all', label: 'Wszystkie' },
+  { value: 'PILOT', label: 'Pilot', color: '#1e40af' },
+  { value: 'OBSERVER', label: 'Obserwator', color: '#6b21a8' },
+];
+
 const CrewList: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [roleFilter, setRoleFilter] = useState('all');
 
   const { data: crewMembers = [], isLoading } = useQuery({
     queryKey: ['crewMembers'],
     queryFn: api.crewMembers.getAll,
   });
+
+  const filteredCrewMembers = useMemo(
+    () =>
+      roleFilter === 'all'
+        ? crewMembers
+        : crewMembers.filter((m: { role: string }) => m.role === roleFilter),
+    [crewMembers, roleFilter],
+  );
 
   const handleRowClick = (id: number) => {
     navigate(`/crew/${id}`);
@@ -105,8 +121,14 @@ const CrewList: React.FC = () => {
         }
       />
       <Box sx={{ p: 3 }}>
+      <FilterBar
+        label="Rola"
+        options={roleFilterOptions}
+        value={roleFilter}
+        onChange={setRoleFilter}
+      />
       <DataTable
-        rows={crewMembers}
+        rows={filteredCrewMembers}
         columns={columns}
         loading={isLoading}
         onRowClick={handleRowClick}

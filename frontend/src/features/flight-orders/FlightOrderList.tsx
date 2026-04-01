@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Box } from '@mui/material';
@@ -6,6 +6,7 @@ import type { GridColDef } from '@mui/x-data-grid';
 import DataTable from '../../shared/components/DataTable';
 import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
+import FilterBar from '../../shared/components/FilterBar';
 import { api } from '../../api/client';
 import {
   FLIGHT_ORDER_STATUS_LABELS,
@@ -99,6 +100,24 @@ const FlightOrderList: React.FC = () => {
     [helicopterMap, crewMemberMap],
   );
 
+  const [statusFilter, setStatusFilter] = useState<string>('SUBMITTED');
+
+  const STATUS_FILTER_OPTIONS = [
+    { value: 'all', label: 'Wszystkie' },
+    { value: 'INTRODUCED', label: 'Wprowadzone', color: '#1d4ed8' },
+    { value: 'SUBMITTED', label: 'Do akceptacji', color: '#d97706' },
+    { value: 'REJECTED', label: 'Odrzucone', color: '#b91c1c' },
+    { value: 'ACCEPTED', label: 'Zaakceptowane', color: '#16a34a' },
+    { value: 'PARTIALLY_COMPLETED', label: 'Częściowo zreal.', color: '#7c3aed' },
+    { value: 'COMPLETED', label: 'Zrealizowane', color: '#0f766e' },
+    { value: 'NOT_COMPLETED', label: 'Nie zrealizowane', color: '#64748b' },
+  ];
+
+  const filteredOrders = useMemo(
+    () => statusFilter === 'all' ? flightOrders : flightOrders.filter((o) => o.status === statusFilter),
+    [flightOrders, statusFilter],
+  );
+
   const handleRowClick = (id: number) => {
     navigate(`/flight-orders/${id}`);
   };
@@ -133,8 +152,14 @@ const FlightOrderList: React.FC = () => {
         }
       />
       <Box sx={{ p: 3 }}>
+      <FilterBar
+        label="Status"
+        options={STATUS_FILTER_OPTIONS}
+        value={statusFilter}
+        onChange={setStatusFilter}
+      />
       <DataTable
-        rows={flightOrders}
+        rows={filteredOrders}
         columns={columns}
         loading={loadingOrders}
         onRowClick={handleRowClick}

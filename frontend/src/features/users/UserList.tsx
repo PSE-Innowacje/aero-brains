@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Box } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import DataTable from '../../shared/components/DataTable';
+import FilterBar from '../../shared/components/FilterBar';
 import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
@@ -45,14 +46,31 @@ const columns: GridColDef[] = [
   },
 ];
 
+const roleFilterOptions = [
+  { value: 'all', label: 'Wszystkie' },
+  { value: 'ADMINISTRATOR', label: 'Administrator', color: '#7c3aed' },
+  { value: 'PLANNER', label: 'Planista', color: '#1d4ed8' },
+  { value: 'SUPERVISOR', label: 'Nadzorca', color: '#d97706' },
+  { value: 'PILOT', label: 'Pilot', color: '#16a34a' },
+];
+
 const UserList: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [roleFilter, setRoleFilter] = useState('all');
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: api.users.getAll,
   });
+
+  const filteredUsers = useMemo(
+    () =>
+      roleFilter === 'all'
+        ? users
+        : users.filter((u: { role: string }) => u.role === roleFilter),
+    [users, roleFilter],
+  );
 
   const handleRowClick = (id: number) => {
     navigate(`/users/${id}`);
@@ -88,8 +106,14 @@ const UserList: React.FC = () => {
         }
       />
       <Box sx={{ p: 3 }}>
+      <FilterBar
+        label="Rola"
+        options={roleFilterOptions}
+        value={roleFilter}
+        onChange={setRoleFilter}
+      />
       <DataTable
-        rows={users}
+        rows={filteredUsers}
         columns={columns}
         loading={isLoading}
         onRowClick={handleRowClick}
