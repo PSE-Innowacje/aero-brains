@@ -111,34 +111,38 @@ export const api = {
       // Persist the JWT so the interceptor picks it up
       localStorage.setItem('aero_token', data.token);
       // Fetch full user details (firstName, lastName)
-      // Try /users first (admin only), then /crew-members as fallback
       let firstName = '';
       let lastName = '';
       let userId = 0;
-      try {
-        const { data: usersPage } = await http.get<Page<User>>('/users', {
-          params: { size: 2147483647 },
-        });
-        const found = usersPage.content.find((u) => u.email === data.email);
-        if (found) {
-          firstName = found.firstName;
-          lastName = found.lastName;
-          userId = found.id;
-        }
-      } catch {
-        // /users is admin-only — try crew-members (accessible to supervisor, pilot)
+      const role = data.role?.toUpperCase();
+      if (role === 'ADMINISTRATOR') {
+        // Admin can access /users
         try {
-          const { data: crew } = await http.get<CrewMember[]>('/crew-members');
-          const found = crew.find((c) => c.email === data.email);
+          const { data: usersPage } = await http.get<Page<User>>('/users', {
+            params: { size: 2147483647 },
+          });
+          const found = usersPage.content.find((u) => u.email === data.email);
           if (found) {
             firstName = found.firstName;
             lastName = found.lastName;
             userId = found.id;
           }
-        } catch {
-          // Derive name from email as last resort
-        }
+        } catch { /* fallback below */ }
+      } else if (role === 'SUPERVISOR' || role === 'PILOT') {
+        // Supervisor/Pilot can access /crew-members
+        try {
+          const { data: crewPage } = await http.get<Page<CrewMember>>('/crew-members', {
+            params: { size: 2147483647 },
+          });
+          const found = crewPage.content.find((c) => c.email === data.email);
+          if (found) {
+            firstName = found.firstName;
+            lastName = found.lastName;
+            userId = found.id;
+          }
+        } catch { /* fallback below */ }
       }
+      // PLANNER and any other role — no accessible endpoint, derive from email
       if (!firstName && !lastName) {
         const parts = data.email.split('@')[0].split('.');
         firstName = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : '';
