@@ -44,6 +44,7 @@ const HelicopterForm: React.FC = () => {
     handleSubmit,
     reset,
     watch,
+    trigger,
     formState: { errors, isValid },
   } = useForm<HelicopterFormData>({
     resolver: zodResolver(helicopterSchema),
@@ -76,6 +77,11 @@ const HelicopterForm: React.FC = () => {
   }, [helicopter, reset]);
 
   const statusValue = watch('status');
+
+  // Re-validate when status changes (refine depends on status for inspectionExpiryDate)
+  useEffect(() => {
+    trigger();
+  }, [statusValue, trigger]);
 
   const saveMutation = useMutation({
     mutationFn: (data: HelicopterFormData) => {
