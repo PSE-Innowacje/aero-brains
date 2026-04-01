@@ -296,7 +296,6 @@ const OperationList: React.FC = () => {
         onRowClick={handleRowClick}
         defaultSortField="plannedDateFrom"
         defaultSortDirection="asc"
-        initialFilter={{ field: 'status', operator: 'equals', value: 'CONFIRMED' }}
       />
     </Box>
   );
