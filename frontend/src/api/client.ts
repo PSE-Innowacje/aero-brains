@@ -22,6 +22,7 @@ import type {
   AuthUser,
   LoginResponse,
   CommentResponse,
+  Page,
 } from './types';
 
 // ── Toggle: set to true to use in-memory mock data instead of real API ──
@@ -87,8 +88,10 @@ export const api = {
       let lastName = '';
       let userId = 0;
       try {
-        const { data: users } = await http.get<User[]>('/users');
-        const found = users.find((u) => u.email === data.email);
+        const { data: usersPage } = await http.get<Page<User>>('/users', {
+          params: { size: 2147483647 },
+        });
+        const found = usersPage.content.find((u) => u.email === data.email);
         if (found) {
           firstName = found.firstName;
           lastName = found.lastName;
@@ -143,8 +146,10 @@ export const api = {
         await delay();
         return [..._helicopters];
       }
-      const { data } = await http.get<Helicopter[]>('/helicopters');
-      return data;
+      const { data } = await http.get<Page<Helicopter>>('/helicopters', {
+        params: { size: 2147483647 },
+      });
+      return data.content;
     },
 
     getById: async (id: number): Promise<Helicopter | undefined> => {
@@ -201,8 +206,10 @@ export const api = {
         await delay();
         return [..._crewMembers];
       }
-      const { data } = await http.get<CrewMember[]>('/crew-members');
-      return data;
+      const { data } = await http.get<Page<CrewMember>>('/crew-members', {
+        params: { size: 2147483647 },
+      });
+      return data.content;
     },
 
     getById: async (id: number): Promise<CrewMember | undefined> => {
@@ -259,8 +266,10 @@ export const api = {
         await delay();
         return [..._landingSites];
       }
-      const { data } = await http.get<LandingSite[]>('/landing-sites');
-      return data;
+      const { data } = await http.get<Page<LandingSite>>('/landing-sites', {
+        params: { size: 2147483647 },
+      });
+      return data.content;
     },
 
     getById: async (id: number): Promise<LandingSite | undefined> => {
@@ -317,8 +326,10 @@ export const api = {
         await delay();
         return [..._users];
       }
-      const { data } = await http.get<User[]>('/users');
-      return data;
+      const { data } = await http.get<Page<User>>('/users', {
+        params: { size: 2147483647 },
+      });
+      return data.content;
     },
 
     getById: async (id: number): Promise<User | undefined> => {
@@ -367,8 +378,10 @@ export const api = {
         await delay();
         return [..._operations];
       }
-      const { data } = await http.get<FlightOperation[]>('/flight-operations');
-      return data;
+      const { data } = await http.get<Page<FlightOperation>>('/flight-operations', {
+        params: { size: 2147483647 },
+      });
+      return data.content;
     },
 
     getById: async (id: number): Promise<FlightOperation | undefined> => {
@@ -547,8 +560,10 @@ export const api = {
         await delay();
         return [..._flightOrders];
       }
-      const { data } = await http.get<FlightOrder[]>('/flight-orders');
-      return data;
+      const { data } = await http.get<Page<FlightOrder>>('/flight-orders', {
+        params: { size: 2147483647 },
+      });
+      return data.content;
     },
 
     getById: async (id: number): Promise<FlightOrder | undefined> => {

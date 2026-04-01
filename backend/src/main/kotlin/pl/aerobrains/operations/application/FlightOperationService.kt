@@ -1,5 +1,8 @@
 package pl.aerobrains.operations.application
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.aerobrains.operations.api.AddCommentRequest
@@ -31,18 +34,18 @@ class FlightOperationService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(statuses: Collection<OperationStatus>?): List<FlightOperationListItem> {
-        val spec = if (statuses != null) {
+    fun findAll(statuses: Collection<OperationStatus>?, pageable: Pageable): Page<FlightOperationListItem> {
+        val spec: Specification<FlightOperation>? = if (statuses != null) {
             FlightOperationSpecifications.hasStatuses(statuses)
         } else {
             null
         }
-        val operations = if (spec != null) {
-            repository.findAll(spec)
+        val page = if (spec != null) {
+            repository.findAll(spec, pageable)
         } else {
-            repository.findAll()
+            repository.findAll(pageable)
         }
-        return mapper.toListItems(operations)
+        return page.map { mapper.toListItem(it) }
     }
 
     @Transactional(readOnly = true)

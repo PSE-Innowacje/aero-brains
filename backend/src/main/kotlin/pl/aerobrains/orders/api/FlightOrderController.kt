@@ -1,6 +1,9 @@
 package pl.aerobrains.orders.api
 
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -22,8 +25,10 @@ class FlightOrderController(
 
     @GetMapping
     @PreAuthorize("hasAnyRole('PILOT', 'SUPERVISOR', 'ADMINISTRATOR')")
-    fun findAll(): ResponseEntity<List<FlightOrderListItem>> {
-        return ResponseEntity.ok(service.findAll())
+    fun findAll(
+        @PageableDefault(size = 20) pageable: Pageable
+    ): ResponseEntity<Page<FlightOrderListItem>> {
+        return ResponseEntity.ok(service.findAll(pageable))
     }
 
     @GetMapping("/{id}")

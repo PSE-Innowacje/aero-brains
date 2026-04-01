@@ -1,3 +1,15 @@
+// Spring Data Page response
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 // Roles
 export type UserRole = 'ADMINISTRATOR' | 'PLANNER' | 'SUPERVISOR' | 'PILOT';
 

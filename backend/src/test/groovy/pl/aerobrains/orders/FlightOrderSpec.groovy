@@ -468,7 +468,7 @@ class FlightOrderSpec extends BaseIntegrationSpec {
 
         then:
         result.andExpect(status().isOk())
-              .andExpect(jsonPath('$').isArray())
+              .andExpect(jsonPath('$.content').isArray())
     }
 
     def "supervisor should list flight orders"() {

@@ -1,5 +1,7 @@
 package pl.aerobrains.shared.security.user
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,8 +17,9 @@ class UserService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(): List<UserResponse> {
-        return userMapper.toResponseList(userRepository.findAll())
+    fun findAll(pageable: Pageable): Page<UserResponse> {
+        return userRepository.findAll(pageable)
+            .map { userMapper.toResponse(it) }
     }
 
     @Transactional(readOnly = true)
