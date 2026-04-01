@@ -214,29 +214,34 @@ const OperationList: React.FC = () => {
   const scheduled = operations.filter((o) => o.status === 'SCHEDULED').length;
   const completed = operations.filter((o) => o.status === 'COMPLETED').length;
 
-  // Only show these statuses on the map
-  const MAP_STATUSES = ['INTRODUCED', 'CONFIRMED', 'SCHEDULED'];
   const STATUS_COLORS: Record<string, string> = {
-    INTRODUCED: '#3b7ff5',  // blue
-    CONFIRMED: '#16a34a',   // green
-    SCHEDULED: '#d97706',   // amber
+    INTRODUCED: '#3b7ff5',
+    REJECTED: '#b91c1c',
+    CONFIRMED: '#16a34a',
+    SCHEDULED: '#d97706',
+    PARTIALLY_COMPLETED: '#7c3aed',
+    COMPLETED: '#0f766e',
+    CANCELLED: '#64748b',
   };
 
-  const mapOperations = useMemo(
-    () => operations.filter((op) => MAP_STATUSES.includes(op.status)),
-    [operations],
+  const [hoveredOpId, setHoveredOpId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('CONFIRMED');
+
+  const filteredOperations = useMemo(
+    () => statusFilter === 'all' ? operations : operations.filter((o) => o.status === statusFilter),
+    [operations, statusFilter],
   );
 
-  // Fetch geojson for map-eligible operations
+  // Fetch geojson for all operations (cached, doesn't re-fetch on filter change)
   const [routeData, setRouteData] = useState<Record<number, Array<{ lat: number; lng: number }>>>({});
 
   useEffect(() => {
-    if (mapOperations.length === 0) return;
+    if (operations.length === 0) return;
     let cancelled = false;
     const fetchRoutes = async () => {
       const results: Record<number, Array<{ lat: number; lng: number }>> = {};
       await Promise.all(
-        mapOperations.map(async (op) => {
+        operations.map(async (op) => {
           try {
             const geojson = await api.operations.getGeojson(op.id);
             const points = parseGeoJsonPoints(typeof geojson === 'string' ? geojson : JSON.stringify(geojson));
@@ -252,11 +257,11 @@ const OperationList: React.FC = () => {
     };
     fetchRoutes();
     return () => { cancelled = true; };
-  }, [mapOperations]);
+  }, [operations]);
 
-  // Build per-route data for the map
+  // Build per-route data from filtered operations
   const mapRoutes = useMemo(() => {
-    return mapOperations
+    return filteredOperations
       .filter((op) => routeData[op.id]?.length >= 2)
       .map((op) => ({
         id: op.id,
@@ -265,7 +270,7 @@ const OperationList: React.FC = () => {
         color: STATUS_COLORS[op.status] || '#3b7ff5',
         points: routeData[op.id],
       }));
-  }, [mapOperations, routeData]);
+  }, [filteredOperations, routeData]);
 
   // All points for bounds fitting
   const allMapPositions = useMemo<[number, number][]>(() => {
@@ -277,9 +282,6 @@ const OperationList: React.FC = () => {
     }
     return pos;
   }, [mapRoutes]);
-
-  const [hoveredOpId, setHoveredOpId] = useState<number | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string>('CONFIRMED');
 
   const STATUS_FILTER_OPTIONS = [
     { value: 'all', label: 'Wszystkie' },
@@ -299,11 +301,6 @@ const OperationList: React.FC = () => {
     }
     return counts;
   }, [operations]);
-
-  const filteredOperations = useMemo(
-    () => statusFilter === 'all' ? operations : operations.filter((o) => o.status === statusFilter),
-    [operations, statusFilter],
-  );
 
   const handleRowClick = (id: number) => {
     navigate(`/operations/${id}`);
@@ -357,38 +354,22 @@ const OperationList: React.FC = () => {
 
       {/* Operations map */}
       <Box
-        sx={{
-          bgcolor: '#fff',
-          borderRadius: '12px',
-          border: '0.5px solid #e2e8f0',
-          overflow: 'hidden',
-          mb: '20px',
-        }}
-      >
-        <Box
           sx={{
-            px: '18px',
-            py: '14px',
-            borderBottom: '0.5px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            bgcolor: '#fff',
+            borderRadius: '12px',
+            border: '0.5px solid #e2e8f0',
+            overflow: 'hidden',
           }}
         >
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
-            Mapa tras operacji
-          </Typography>
-        </Box>
         <Box sx={{ p: '14px' }}>
-          {mapRoutes.length > 0 ? (
-            <Box sx={{ borderRadius: '10px', overflow: 'hidden', border: '0.5px solid #e2e8f0' }}>
-              <MapContainer center={[52.0, 19.5]} zoom={6} style={{ height: 380, width: '100%' }}>
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {allMapPositions.length > 0 && <FitBounds positions={allMapPositions} />}
-                {mapRoutes.map((route) => {
+          <Box sx={{ borderRadius: '10px', overflow: 'hidden', border: '0.5px solid #e2e8f0' }}>
+            <MapContainer center={[52.0, 19.5]} zoom={6} style={{ height: 380, width: '100%' }}>
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {allMapPositions.length > 0 && <FitBounds positions={allMapPositions} />}
+              {mapRoutes.map((route) => {
                   const positions = route.points.map((p) => [p.lat, p.lng] as [number, number]);
                   const start = route.points[0];
                   const end = route.points[route.points.length - 1];
@@ -419,9 +400,6 @@ const OperationList: React.FC = () => {
                           opacity: isDimmed ? 0.45 : 1,
                         }}
                       >
-                        <Tooltip permanent direction="top" offset={[0, -8]} className="route-label">
-                          #{route.id}
-                        </Tooltip>
                         <Popup>
                           <strong>{route.label}</strong>
                           Początek trasy
@@ -449,29 +427,26 @@ const OperationList: React.FC = () => {
                 })}
               </MapContainer>
             </Box>
-          ) : (
-            <Typography sx={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', py: 4 }}>
-              Brak danych do wyświetlenia na mapie
-            </Typography>
-          )}
 
           {/* Legend */}
-          {mapRoutes.length > 0 && (
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 1, fontSize: 11, color: '#64748b' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: '#3b7ff5' }} />
-                Wprowadzone
+          {mapRoutes.length > 0 && (() => {
+            const visibleStatuses = [...new Set(mapRoutes.map((r) => r.status))];
+            const STATUS_LABELS: Record<string, string> = {
+              INTRODUCED: 'Wprowadzone', REJECTED: 'Odrzucone', CONFIRMED: 'Potwierdzone',
+              SCHEDULED: 'Zaplanowane', PARTIALLY_COMPLETED: 'Częściowo zreal.',
+              COMPLETED: 'Zrealizowane', CANCELLED: 'Rezygnacja',
+            };
+            return (
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 1, fontSize: 11, color: '#64748b' }}>
+                {visibleStatuses.map((s) => (
+                  <Box key={s} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: STATUS_COLORS[s] || '#64748b' }} />
+                    {STATUS_LABELS[s] || s}
+                  </Box>
+                ))}
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: '#16a34a' }} />
-                Potwierdzone
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 18, height: 3, borderRadius: 2, bgcolor: '#d97706' }} />
-                Zaplanowane
-              </Box>
-            </Box>
-          )}
+            );
+          })()}
         </Box>
       </Box>
 
