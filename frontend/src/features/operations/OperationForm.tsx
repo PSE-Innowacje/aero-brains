@@ -94,7 +94,7 @@ const OperationForm: React.FC = () => {
 
   const isFieldDisabled = (fieldName: string): boolean => {
     if (readOnly) return true;
-    if (role === 'PLANNER' && plannerBlockedFields.includes(fieldName)) return true;
+    if (role?.toUpperCase() === 'PLANNER' && plannerBlockedFields.includes(fieldName)) return true;
     return false;
   };
 

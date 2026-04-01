@@ -13,7 +13,7 @@ const FlightOrderStatusActions: React.FC<FlightOrderStatusActionsProps> = ({
   onStatusChange,
 }) => {
   const { user } = useAuth();
-  const role = user?.role;
+  const role = user?.role?.toUpperCase();
   const status = flightOrder.status;
 
   const buttons: React.ReactNode[] = [];

@@ -17,7 +17,7 @@ const OperationStatusActions: React.FC<OperationStatusActionsProps> = ({
   plannedDateTo,
 }) => {
   const { user } = useAuth();
-  const role = user?.role;
+  const role = user?.role?.toUpperCase();
   const status = operation.status;
 
   const buttons: React.ReactNode[] = [];

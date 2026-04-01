@@ -43,7 +43,8 @@ export const menuPermissions: Record<string, MenuPermission> = {
 export const canCreate = (role: UserRole, menuKey: string): boolean => {
   const perm = menuPermissions[menuKey];
   if (!perm) return false;
-  return perm.access[role] === 'full';
+  const normalized = role.toUpperCase() as UserRole;
+  return perm.access[normalized] === 'full';
 };
 
 /** Status codes in which a given role can edit an operation */
@@ -66,7 +67,8 @@ export const plannerBlockedFields: string[] = [
 export const canAccessMenu = (role: UserRole, menuKey: string): boolean => {
   const perm = menuPermissions[menuKey];
   if (!perm) return false;
-  return perm.access[role] !== 'none';
+  const normalized = role.toUpperCase() as UserRole;
+  return perm.access[normalized] !== 'none';
 };
 
 /**
@@ -75,14 +77,16 @@ export const canAccessMenu = (role: UserRole, menuKey: string): boolean => {
 export const canEdit = (role: UserRole, menuKey: string): boolean => {
   const perm = menuPermissions[menuKey];
   if (!perm) return false;
-  return perm.access[role] === 'full' || perm.access[role] === 'edit';
+  const normalized = role.toUpperCase() as UserRole;
+  return perm.access[normalized] === 'full' || perm.access[normalized] === 'edit';
 };
 
 /**
  * Check if a role can edit an operation given the current status code.
  */
 export const canEditOperation = (role: UserRole, statusCode: string): boolean => {
-  const allowed = operationEditableStatuses[role];
+  const normalized = role.toUpperCase();
+  const allowed = operationEditableStatuses[normalized];
   if (!allowed) return false;
   return allowed.includes(statusCode);
 };
