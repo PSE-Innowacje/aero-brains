@@ -15,6 +15,9 @@ services:
     container_name: aero-frontend
     ports:
       - "3000:80"
+    environment:
+      PORT: 80
+      BACKEND_URL: http://backend:8080
     depends_on:
       - backend
     restart: on-failure
