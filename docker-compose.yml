@@ -1,0 +1,20 @@
+version: '3.3'
+
+services:
+  backend:
+    build: ./backend
+    container_name: aero-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: h2
+    restart: on-failure
+
+  frontend:
+    build: ./frontend
+    container_name: aero-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: on-failure
