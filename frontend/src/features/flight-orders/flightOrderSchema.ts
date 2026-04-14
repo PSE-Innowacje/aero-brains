@@ -1,35 +1,51 @@
 import { z } from 'zod/v4';
 
 export const flightOrderSchema = z.object({
-  plannedStartDateTime: z
+  plannedStartTime: z
     .string()
     .min(1, 'Planowana data startu jest wymagana'),
-  plannedLandingDateTime: z
+  plannedEndTime: z
     .string()
     .min(1, 'Planowana data lądowania jest wymagana'),
   pilotId: z
     .number({ error: 'Pilot jest wymagany' })
-    .int(),
+    .int()
+    .min(1, 'Pilot jest wymagany'),
   helicopterId: z
     .number({ error: 'Helikopter jest wymagany' })
-    .int(),
+    .int()
+    .min(1, 'Helikopter jest wymagany'),
   crewMemberIds: z
     .array(z.number().int()),
-  startLandingSiteId: z
+  departureSiteId: z
     .number({ error: 'Miejsce startu jest wymagane' })
-    .int(),
-  endLandingSiteId: z
+    .int()
+    .min(1, 'Miejsce startu jest wymagane'),
+  arrivalSiteId: z
     .number({ error: 'Miejsce lądowania jest wymagane' })
-    .int(),
-  selectedOperationIds: z
+    .int()
+    .min(1, 'Miejsce lądowania jest wymagane'),
+  operationIds: z
     .array(z.number().int())
     .min(1, 'Wybierz co najmniej jedną operację'),
-  estimatedRouteDistance: z
+  estimatedRouteLengthKm: z
     .number({ error: 'Wymagana liczba całkowita' })
-    .int('Musi być liczbą całkowitą')
-    .min(0, 'Minimum 0 km'),
-  actualStartDateTime: z.string().optional().or(z.literal('')),
-  actualLandingDateTime: z.string().optional().or(z.literal('')),
+    .int('Wymagana liczba całkowita')
+    .min(0, 'Wymagana liczba całkowita'),
+  actualStartTime: z.string().optional().or(z.literal('')),
+  actualEndTime: z.string().optional().or(z.literal('')),
+  actualRouteLengthKm: z.number().int().min(0).optional(),
 });
 
 export type FlightOrderFormData = z.infer<typeof flightOrderSchema>;
+
+export const settleFlightOrderSchema = z.object({
+  actualStartTime: z.string().min(1, 'Rzeczywista data startu jest wymagana'),
+  actualEndTime: z.string().min(1, 'Rzeczywista data lądowania jest wymagana'),
+  actualRouteLengthKm: z
+    .number({ error: 'Rzeczywista długość trasy jest wymagana' })
+    .int()
+    .min(1, 'Rzeczywista długość trasy musi wynosić co najmniej 1 km'),
+});
+
+export type SettleFlightOrderFormData = z.infer<typeof settleFlightOrderSchema>;

@@ -1,17 +1,19 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Box, Typography } from '@mui/material';
+import { Button, Box } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import DataTable from '../../shared/components/DataTable';
+import PageHeader from '../../shared/components/PageHeader';
 import StatusBadge from '../../shared/components/StatusBadge';
+import FilterBar from '../../shared/components/FilterBar';
 import { api } from '../../api/client';
 import {
   FLIGHT_ORDER_STATUS_LABELS,
-  type FlightOrderStatusCode,
+  type FlightOrderStatus,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
-import { canEdit } from '../../shared/utils/permissions';
+import { canCreate } from '../../shared/utils/permissions';
 
 const FlightOrderList: React.FC = () => {
   const navigate = useNavigate();
@@ -45,12 +47,15 @@ const FlightOrderList: React.FC = () => {
   const columns: GridColDef[] = useMemo(
     () => [
       {
-        field: 'orderNumber',
+        field: 'id',
         headerName: 'Nr zlecenia',
         width: 150,
+        renderCell: (params) => (
+          <span style={{ fontFamily: 'monospace' }}>#{params.value}</span>
+        ),
       },
       {
-        field: 'plannedStartDateTime',
+        field: 'plannedStartTime',
         headerName: 'Data startu',
         width: 180,
         valueFormatter: (value: string) => {
@@ -84,13 +89,21 @@ const FlightOrderList: React.FC = () => {
         },
       },
       {
+        field: 'estimatedRouteLengthKm',
+        headerName: 'Dystans',
+        width: 100,
+        renderCell: (params) => (
+          <span>{params.value != null ? `${params.value} km` : '\u2014'}</span>
+        ),
+      },
+      {
         field: 'status',
         headerName: 'Status',
         width: 200,
         renderCell: (params) => (
           <StatusBadge
-            statusCode={params.value as number}
-            label={FLIGHT_ORDER_STATUS_LABELS[params.value as FlightOrderStatusCode] ?? ''}
+            statusCode={params.value as string}
+            label={FLIGHT_ORDER_STATUS_LABELS[params.value as FlightOrderStatus] ?? ''}
           />
         ),
       },
@@ -98,35 +111,83 @@ const FlightOrderList: React.FC = () => {
     [helicopterMap, crewMemberMap],
   );
 
+  const [statusFilter, setStatusFilter] = useState<string>('SUBMITTED');
+
+  const STATUS_FILTER_OPTIONS = [
+    { value: 'all', label: 'Wszystkie' },
+    { value: 'INTRODUCED', label: 'Wprowadzone', color: '#1d4ed8' },
+    { value: 'SUBMITTED', label: 'Do akceptacji', color: '#d97706' },
+    { value: 'REJECTED', label: 'Odrzucone', color: '#b91c1c' },
+    { value: 'ACCEPTED', label: 'Zaakceptowane', color: '#16a34a' },
+    { value: 'PARTIALLY_COMPLETED', label: 'Częściowo zreal.', color: '#7c3aed' },
+    { value: 'COMPLETED', label: 'Zrealizowane', color: '#0f766e' },
+    { value: 'NOT_COMPLETED', label: 'Nie zrealizowane', color: '#64748b' },
+  ];
+
+  const filterCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: flightOrders.length };
+    for (const o of flightOrders) {
+      counts[o.status] = (counts[o.status] || 0) + 1;
+    }
+    return counts;
+  }, [flightOrders]);
+
+  const filteredOrders = useMemo(
+    () => statusFilter === 'all' ? flightOrders : flightOrders.filter((o) => o.status === statusFilter),
+    [flightOrders, statusFilter],
+  );
+
   const handleRowClick = (id: number) => {
     navigate(`/flight-orders/${id}`);
   };
 
-  const showAddButton = user?.role && canEdit(user.role, 'flightOrders');
+  const showAddButton = user?.role && canCreate(user.role, 'flightOrders');
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Zlecenia lotów</Typography>
-        {showAddButton && (
-          <Button
-            variant="contained"
-            onClick={() => navigate('/flight-orders/new')}
-          >
-            Dodaj zlecenie
-          </Button>
-        )}
-      </Box>
+    <>
+      <PageHeader
+        title="Lista zleceń"
+        subtitle="Zlecenia na lot helikopterem"
+        action={
+          showAddButton ? (
+            <Button
+              variant="contained"
+              onClick={() => navigate('/flight-orders/new')}
+              sx={{
+                bgcolor: '#3b7ff5',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 600,
+                textTransform: 'none',
+                borderRadius: '7px',
+                px: 1.5,
+                py: 0.75,
+                '&:hover': { bgcolor: '#2563eb' },
+              }}
+            >
+              Dodaj zlecenie
+            </Button>
+          ) : undefined
+        }
+      />
+      <Box sx={{ p: 3 }}>
+      <FilterBar
+        label="Status"
+        options={STATUS_FILTER_OPTIONS}
+        value={statusFilter}
+        onChange={setStatusFilter}
+        counts={filterCounts}
+      />
       <DataTable
-        rows={flightOrders}
+        rows={filteredOrders}
         columns={columns}
         loading={loadingOrders}
         onRowClick={handleRowClick}
-        defaultSortField="plannedStartDateTime"
+        defaultSortField="plannedStartTime"
         defaultSortDirection="asc"
-        initialFilter={{ field: 'status', operator: 'equals', value: '2' }}
       />
-    </Box>
+      </Box>
+    </>
   );
 };
 

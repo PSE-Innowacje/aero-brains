@@ -20,19 +20,17 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { operationSchema, type OperationFormData } from './operationSchema';
-import OperationMap from './OperationMap';
 import OperationStatusActions from './OperationStatusActions';
-import KmlUpload from './KmlUpload';
-import type { KmlPoint } from '../../shared/utils/kml';
+import MapEditor from './MapEditor';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
   OPERATION_STATUS_LABELS,
   ACTIVITY_TYPE_LABELS,
   type ActivityType,
-  type OperationStatusCode,
+  type OperationStatus,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -54,8 +52,38 @@ const OperationForm: React.FC = () => {
   const { user } = useAuth();
   const role = user?.role;
 
-  const [kmlPoints, setKmlPoints] = useState<KmlPoint[]>([]);
-  const [kmlFileName, setKmlFileName] = useState<string>('');
+  const [geojsonContent, setGeojsonContent] = useState<string>('');
+
+  // Parse geojsonContent into points for the map
+  const mapPoints = (() => {
+    if (!geojsonContent) return [];
+    try {
+      const geojson = JSON.parse(geojsonContent);
+      const points: Array<{ lat: number; lng: number }> = [];
+      const extractFromGeometry = (geometry: any) => {
+        if (!geometry) return;
+        if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) {
+          points.push({ lat: geometry.coordinates[1], lng: geometry.coordinates[0] });
+        } else if (geometry.type === 'LineString' && Array.isArray(geometry.coordinates)) {
+          for (const coord of geometry.coordinates) {
+            points.push({ lat: coord[1], lng: coord[0] });
+          }
+        }
+      };
+      if (geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)) {
+        for (const feature of geojson.features) {
+          extractFromGeometry(feature.geometry);
+        }
+      } else if (geojson.type === 'Feature') {
+        extractFromGeometry(geojson.geometry);
+      } else {
+        extractFromGeometry(geojson);
+      }
+      return points;
+    } catch {
+      return [];
+    }
+  })();
 
   const { data: operation, isLoading } = useQuery({
     queryKey: ['operations', operationId],
@@ -70,7 +98,12 @@ const OperationForm: React.FC = () => {
 
   const isFieldDisabled = (fieldName: string): boolean => {
     if (readOnly) return true;
-    if (role === 'planner' && plannerBlockedFields.includes(fieldName)) return true;
+    if (role?.toUpperCase() === 'PLANNER' && plannerBlockedFields.includes(fieldName)) return true;
+    return false;
+  };
+
+  const isFieldHidden = (fieldName: string): boolean => {
+    if (isNew && plannerBlockedFields.includes(fieldName)) return true;
     return false;
   };
 
@@ -79,69 +112,72 @@ const OperationForm: React.FC = () => {
     handleSubmit,
     reset,
     setValue,
-    formState: { errors },
+    watch,
+    formState: { errors, isValid },
   } = useForm<OperationFormData>({
     resolver: zodResolver(operationSchema),
+    mode: 'onChange',
     defaultValues: {
-      orderNumber: '',
+      orderProjectNumber: '',
       shortDescription: '',
       proposedDateFrom: '',
       proposedDateTo: '',
-      activityTypes: [],
+      activities: [],
       additionalInfo: '',
-      routeDistanceKm: 0,
+      routeLengthKm: 0,
       plannedDateFrom: '',
       plannedDateTo: '',
-      postRealizationNotes: '',
+      postCompletionNotes: '',
     },
   });
 
   useEffect(() => {
     if (operation) {
       reset({
-        orderNumber: operation.orderNumber,
+        orderProjectNumber: operation.orderProjectNumber,
         shortDescription: operation.shortDescription,
         proposedDateFrom: operation.proposedDateFrom ?? '',
         proposedDateTo: operation.proposedDateTo ?? '',
-        activityTypes: operation.activityTypes,
+        activities: operation.activities,
         additionalInfo: operation.additionalInfo ?? '',
-        routeDistanceKm: operation.routeDistanceKm,
+        routeLengthKm: operation.routeLengthKm,
         plannedDateFrom: operation.plannedDateFrom ?? '',
         plannedDateTo: operation.plannedDateTo ?? '',
-        postRealizationNotes: operation.postRealizationNotes ?? '',
+        postCompletionNotes: operation.postCompletionNotes ?? '',
       });
-      if (operation.kmlPoints) {
-        setKmlPoints(operation.kmlPoints);
-      }
-      if (operation.kmlFileName) {
-        setKmlFileName(operation.kmlFileName);
+      if (operation.geojsonContent) {
+        setGeojsonContent(operation.geojsonContent);
       }
     }
   }, [operation, reset]);
 
   const saveMutation = useMutation({
     mutationFn: (data: OperationFormData) => {
-      const payload = {
+      const coordinates = mapPoints.length > 0
+        ? mapPoints.map((p) => ({ latitude: p.lat, longitude: p.lng }))
+        : undefined;
+      if (isNew) {
+        return api.operations.create({
+          orderProjectNumber: data.orderProjectNumber,
+          shortDescription: data.shortDescription,
+          activities: data.activities,
+          proposedDateFrom: data.proposedDateFrom || undefined,
+          proposedDateTo: data.proposedDateTo || undefined,
+          additionalInfo: data.additionalInfo || undefined,
+          contactEmails: data.contactEmails || undefined,
+          coordinates,
+        });
+      }
+      return api.operations.update(operationId!, {
         ...data,
         proposedDateFrom: data.proposedDateFrom || undefined,
         proposedDateTo: data.proposedDateTo || undefined,
         additionalInfo: data.additionalInfo || undefined,
         plannedDateFrom: data.plannedDateFrom || undefined,
         plannedDateTo: data.plannedDateTo || undefined,
-        postRealizationNotes: data.postRealizationNotes || undefined,
-        kmlPoints: kmlPoints.length > 0 ? kmlPoints : undefined,
-        kmlFileName: kmlFileName || undefined,
-      };
-      if (isNew) {
-        return api.operations.create({
-          ...payload,
-          status: 1 as OperationStatusCode,
-          comments: [],
-          createdBy: user?.email ?? '',
-          linkedFlightOrderIds: [],
-        });
-      }
-      return api.operations.update(operationId!, payload);
+        postCompletionNotes: data.postCompletionNotes || undefined,
+        coordinates,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
@@ -150,7 +186,7 @@ const OperationForm: React.FC = () => {
   });
 
   const statusMutation = useMutation({
-    mutationFn: (newStatus: OperationStatusCode) =>
+    mutationFn: (newStatus: OperationStatus) =>
       api.operations.updateStatus(operationId!, newStatus),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
@@ -162,7 +198,18 @@ const OperationForm: React.FC = () => {
     saveMutation.mutate(data);
   };
 
-  const handleStatusChange = (newStatus: OperationStatusCode) => {
+  const handleStatusChange = (newStatus: OperationStatus) => {
+    if (newStatus === 'CONFIRMED') {
+      const values = watch();
+      api.operations.confirm(operationId!, {
+        plannedDateFrom: values.plannedDateFrom || undefined,
+        plannedDateTo: values.plannedDateTo || undefined,
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['operations'] });
+        navigate('/operations');
+      });
+      return;
+    }
     statusMutation.mutate(newStatus);
   };
 
@@ -171,17 +218,12 @@ const OperationForm: React.FC = () => {
   }
 
   return (
-    <Box maxWidth={800}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/operations')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowa operacja' : `Operacja ${operation?.operationNumber ?? ''}`}
-      </Typography>
+    <>
+      <PageHeader
+        title={isNew ? 'Nowa operacja' : `Operacja #${operation?.id ?? ''}`}
+        onBack={() => navigate('/operations')}
+      />
+      <Box sx={{ p: 3, maxWidth: 800 }}>
 
       {operation && (
         <Box mb={2}>
@@ -195,16 +237,16 @@ const OperationForm: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
-            name="orderNumber"
+            name="orderProjectNumber"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Numer zlecenia"
-                error={!!errors.orderNumber}
-                helperText={errors.orderNumber?.message}
+                label="Numer zlecenia *"
+                error={!!errors.orderProjectNumber}
+                helperText={errors.orderProjectNumber?.message}
                 fullWidth
-                disabled={isFieldDisabled('orderNumber')}
+                disabled={isFieldDisabled('orderProjectNumber')}
               />
             )}
           />
@@ -215,7 +257,7 @@ const OperationForm: React.FC = () => {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Krótki opis"
+                label="Krótki opis *"
                 error={!!errors.shortDescription}
                 helperText={errors.shortDescription?.message}
                 fullWidth
@@ -259,19 +301,27 @@ const OperationForm: React.FC = () => {
           />
 
           <Controller
-            name="activityTypes"
+            name="activities"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.activityTypes} disabled={isFieldDisabled('activityTypes')}>
-                <InputLabel>Rodzaj czynności</InputLabel>
+              <FormControl fullWidth error={!!errors.activities} disabled={isFieldDisabled('activities')}>
+                <InputLabel>Rodzaj czynności *</InputLabel>
                 <Select
-                  {...field}
                   multiple
-                  label="Rodzaj czynności"
+                  label="Rodzaj czynności *"
+                  value={field.value.map((a) => a.activityType)}
+                  onChange={(e) => {
+                    const selected = e.target.value as string[];
+                    const newActivities = selected.map((activityType) => {
+                      const existing = field.value.find((a) => a.activityType === activityType);
+                      return existing ?? { activityType };
+                    });
+                    field.onChange(newActivities);
+                  }}
                   renderValue={(selected) => (
                     <Box display="flex" flexWrap="wrap" gap={0.5}>
-                      {(selected as ActivityType[]).map((value) => (
-                        <Chip key={value} label={ACTIVITY_TYPE_LABELS[value]} size="small" />
+                      {(selected as string[]).map((value) => (
+                        <Chip key={value} label={ACTIVITY_TYPE_LABELS[value as ActivityType] ?? value} size="small" />
                       ))}
                     </Box>
                   )}
@@ -282,12 +332,32 @@ const OperationForm: React.FC = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.activityTypes && (
-                  <FormHelperText>{errors.activityTypes.message}</FormHelperText>
+                {errors.activities && typeof errors.activities.message === 'string' && (
+                  <FormHelperText>{errors.activities.message}</FormHelperText>
                 )}
               </FormControl>
             )}
           />
+
+          {watch('activities')?.some((a) => a.activityType === 'OTHER') && (
+            <Controller
+              name={`activities.${watch('activities').findIndex((a) => a.activityType === 'OTHER')}.description`}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={field.value ?? ''}
+                  label='Opis dla "Inne" *'
+                  multiline
+                  rows={2}
+                  inputProps={{ maxLength: 200 }}
+                  error={!!errors.activities?.[watch('activities').findIndex((a) => a.activityType === 'OTHER')]?.description}
+                  helperText={errors.activities?.[watch('activities').findIndex((a) => a.activityType === 'OTHER')]?.description?.message}
+                  disabled={isFieldDisabled('activities')}
+                />
+              )}
+            />
+          )}
 
           <Controller
             name="additionalInfo"
@@ -306,91 +376,112 @@ const OperationForm: React.FC = () => {
             )}
           />
 
-          {/* KML file upload */}
-          <KmlUpload
-            points={kmlPoints}
+          {/* Interactive map for route */}
+          <MapEditor
+            points={mapPoints}
             onPointsChange={(points, distanceKm) => {
-              setKmlPoints(points);
-              setValue('routeDistanceKm', distanceKm);
+              const geojson = {
+                type: 'FeatureCollection',
+                features: points.length > 1
+                  ? [{
+                      type: 'Feature',
+                      geometry: {
+                        type: 'LineString',
+                        coordinates: points.map((p) => [p.lng, p.lat]),
+                      },
+                      properties: {},
+                    }]
+                  : points.map((p) => ({
+                      type: 'Feature',
+                      geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+                      properties: {},
+                    })),
+              };
+              setGeojsonContent(JSON.stringify(geojson));
+              setValue('routeLengthKm', distanceKm);
             }}
             disabled={readOnly}
-            fileName={kmlFileName}
-            onFileNameChange={setKmlFileName}
           />
 
           <Controller
-            name="routeDistanceKm"
+            name="routeLengthKm"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
-                label="Dystans trasy (km)"
+                label="Dystans trasy (km) *"
                 type="number"
-                error={!!errors.routeDistanceKm}
-                helperText={errors.routeDistanceKm?.message}
+                error={!!errors.routeLengthKm}
+                helperText={errors.routeLengthKm?.message}
                 fullWidth
-                disabled={isFieldDisabled('routeDistanceKm')}
+                disabled={isFieldDisabled('routeLengthKm')}
               />
             )}
           />
 
-          <Controller
-            name="plannedDateFrom"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Planowana data od"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedDateFrom}
-                helperText={errors.plannedDateFrom?.message}
-                fullWidth
-                disabled={isFieldDisabled('plannedDateFrom')}
-              />
-            )}
-          />
+          {!isFieldHidden('plannedDateFrom') && (
+            <Controller
+              name="plannedDateFrom"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Planowana data od"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.plannedDateFrom}
+                  helperText={errors.plannedDateFrom?.message}
+                  fullWidth
+                  disabled={isFieldDisabled('plannedDateFrom')}
+                />
+              )}
+            />
+          )}
 
-          <Controller
-            name="plannedDateTo"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Planowana data do"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedDateTo}
-                helperText={errors.plannedDateTo?.message}
-                fullWidth
-                disabled={isFieldDisabled('plannedDateTo')}
-              />
-            )}
-          />
+          {!isFieldHidden('plannedDateTo') && (
+            <Controller
+              name="plannedDateTo"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Planowana data do"
+                  type="date"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.plannedDateTo}
+                  helperText={errors.plannedDateTo?.message}
+                  fullWidth
+                  disabled={isFieldDisabled('plannedDateTo')}
+                />
+              )}
+            />
+          )}
 
-          <Controller
-            name="postRealizationNotes"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Uwagi porealizacyjne"
-                multiline
-                rows={3}
-                error={!!errors.postRealizationNotes}
-                helperText={errors.postRealizationNotes?.message}
-                fullWidth
-                disabled={isFieldDisabled('postRealizationNotes')}
-              />
-            )}
-          />
+          {!isFieldHidden('postCompletionNotes') && (
+            <Controller
+              name="postCompletionNotes"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Uwagi porealizacyjne"
+                  multiline
+                  rows={3}
+                  error={!!errors.postCompletionNotes}
+                  helperText={errors.postCompletionNotes?.message}
+                  fullWidth
+                  disabled={isFieldDisabled('postCompletionNotes')}
+                />
+              )}
+            />
+          )}
 
-          {/* Contact persons - read-only */}
-          {operation?.contactPersons && operation.contactPersons.length > 0 && (
+          {/* Contact emails - read-only */}
+          {operation?.contactEmails && (
             <TextField
               label="Osoby kontaktowe"
-              value={operation.contactPersons.join(', ')}
+              value={operation.contactEmails}
               fullWidth
               disabled
             />
@@ -407,8 +498,8 @@ const OperationForm: React.FC = () => {
                 {operation.comments.map((comment, idx) => (
                   <ListItem key={idx}>
                     <ListItemText
-                      primary={comment.text}
-                      secondary={`${comment.author} — ${comment.date}`}
+                      primary={comment.content}
+                      secondary={`${comment.authorEmail} — ${comment.createdAt}`}
                     />
                   </ListItem>
                 ))}
@@ -421,7 +512,7 @@ const OperationForm: React.FC = () => {
               <Button
                 type="submit"
                 variant="contained"
-                disabled={saveMutation.isPending}
+                disabled={saveMutation.isPending || !isValid}
               >
                 Zapisz
               </Button>
@@ -441,22 +532,50 @@ const OperationForm: React.FC = () => {
         </Stack>
       </form>
 
-      {/* Map */}
-      <Box mt={3}>
-        <Typography variant="h6" mb={1}>
-          Mapa trasy
-        </Typography>
-        <OperationMap points={kmlPoints} />
-      </Box>
+      {/* Change log */}
+      {operation?.changeLog && operation.changeLog.length > 0 && (
+        <Box mt={3}>
+          <Typography variant="h6" mb={1}>
+            Historia zmian
+          </Typography>
+          <Box sx={{ bgcolor: '#fff', borderRadius: '12px', border: '0.5px solid #e2e8f0', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Pole</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Stara wartość</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Nowa wartość</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Zmienił/a</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: '#64748b', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' }}>Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {operation.changeLog.map((log) => (
+                  <tr key={log.id}>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9' }}>{log.fieldName}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9', color: '#94a3b8' }}>{log.oldValue || '—'}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9' }}>{log.newValue || '—'}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9', fontFamily: 'monospace', fontSize: 10 }}>{log.changedByEmail}</td>
+                    <td style={{ padding: '7px 12px', borderBottom: '0.5px solid #f1f5f9', fontSize: 10 }}>{new Date(log.changedAt).toLocaleString('pl-PL')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Box>
+        </Box>
+      )}
 
       {/* Status actions */}
       {operation && !isNew && (
         <OperationStatusActions
           operation={operation}
           onStatusChange={handleStatusChange}
+          plannedDateFrom={watch('plannedDateFrom')}
+          plannedDateTo={watch('plannedDateTo')}
         />
       )}
-    </Box>
+      </Box>
+    </>
   );
 };
 

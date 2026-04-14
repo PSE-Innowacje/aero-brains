@@ -1,25 +1,7 @@
 import React, { type CSSProperties } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
-// Fix default marker icon — Vite doesn't bundle leaflet's default icon assets correctly.
-// Use inline SVG data URIs instead.
-const svgIcon = (color: string) =>
-  L.divIcon({
-    className: '',
-    html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="28" height="42">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
-      <circle cx="12" cy="12" r="5" fill="#fff"/>
-    </svg>`,
-    iconSize: [28, 42],
-    iconAnchor: [14, 42],
-    popupAnchor: [0, -42],
-  });
-
-const defaultIcon = svgIcon('#2196F3');
-const startIcon = svgIcon('#4CAF50');
-const endIcon = svgIcon('#F44336');
 
 interface MapPoint {
   lat: number;
@@ -74,6 +56,15 @@ const FitBounds: React.FC<{ points?: MapPoint[]; markers?: MapMarker[] }> = ({
   return null;
 };
 
+/**
+ * Returns marker color config based on position in the markers array.
+ */
+function getMarkerStyle(idx: number, total: number) {
+  if (total >= 2 && idx === 0) return { fillColor: '#16a34a', color: '#fff', label: 'Poczatek' }; // green = start
+  if (total >= 2 && idx === total - 1) return { fillColor: '#dc2626', color: '#fff', label: 'Koniec' }; // red = end
+  return { fillColor: '#3b7ff5', color: '#fff', label: '' }; // blue = middle
+}
+
 const MapView: React.FC<MapViewProps> = ({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
@@ -91,7 +82,7 @@ const MapView: React.FC<MapViewProps> = ({
     <MapContainer
       center={center}
       zoom={zoom}
-      style={{ height: 400, width: '100%', ...style }}
+      style={{ height: 400, width: '100%', borderRadius: '10px', ...style }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -103,19 +94,40 @@ const MapView: React.FC<MapViewProps> = ({
       )}
 
       {polylinePositions && polylinePositions.length > 0 && (
-        <Polyline positions={polylinePositions} color="blue" weight={3} />
+        <Polyline positions={polylinePositions} color="blue" weight={4} />
       )}
 
       {markers?.map((marker, idx) => {
-        // Pick icon based on position: first = start (green), last = end (red), else default
-        let icon = defaultIcon;
-        if (markers.length >= 2 && idx === 0) icon = startIcon;
-        else if (markers.length >= 2 && idx === markers.length - 1) icon = endIcon;
+        const markerCount = markers.length;
+        const ms = getMarkerStyle(idx, markerCount);
+        const isStartOrEnd = (markerCount >= 2 && idx === 0) || (markerCount >= 2 && idx === markerCount - 1);
+        const tooltipLabel = markerCount >= 2 && idx === 0
+          ? 'Początek'
+          : markerCount >= 2 && idx === markerCount - 1
+            ? 'Koniec'
+            : null;
 
         return (
-          <Marker key={idx} position={[marker.lat, marker.lng]} icon={icon}>
-            <Popup>{marker.label}</Popup>
-          </Marker>
+          <CircleMarker
+            key={idx}
+            center={[marker.lat, marker.lng]}
+            radius={isStartOrEnd ? 8 : 6}
+            pathOptions={{
+              color: ms.color,
+              weight: 2.5,
+              fillColor: ms.fillColor,
+              fillOpacity: 1,
+            }}
+          >
+            {tooltipLabel && (
+              <Tooltip permanent direction="top" offset={[0, -10]} className="route-label">
+                {tooltipLabel}
+              </Tooltip>
+            )}
+            <Popup>
+              <strong>{marker.label}</strong>
+            </Popup>
+          </CircleMarker>
         );
       })}
     </MapContainer>

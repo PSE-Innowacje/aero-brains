@@ -1,6 +1,9 @@
 package pl.aerobrains.operations.api
 
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -27,8 +30,11 @@ class FlightOperationController(
 
     @GetMapping
     @PreAuthorize("hasAnyRole('PLANNER', 'SUPERVISOR', 'ADMINISTRATOR', 'PILOT')")
-    fun findAll(@RequestParam(required = false) statuses: List<OperationStatus>?): ResponseEntity<List<FlightOperationListItem>> {
-        return ResponseEntity.ok(service.findAll(statuses))
+    fun findAll(
+        @RequestParam(required = false) statuses: List<OperationStatus>?,
+        @PageableDefault(size = 20) pageable: Pageable
+    ): ResponseEntity<Page<FlightOperationListItem>> {
+        return ResponseEntity.ok(service.findAll(statuses, pageable))
     }
 
     @GetMapping("/{id}")

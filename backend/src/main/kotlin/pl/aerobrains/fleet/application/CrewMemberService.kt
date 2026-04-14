@@ -1,5 +1,7 @@
 package pl.aerobrains.fleet.application
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.aerobrains.fleet.api.CreateCrewMemberRequest
@@ -20,10 +22,9 @@ class CrewMemberService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(): List<CrewMemberResponse> {
-        return crewMemberMapper.toResponseList(
-            crewMemberRepository.findAllByOrderByEmailAsc()
-        )
+    fun findAll(pageable: Pageable): Page<CrewMemberResponse> {
+        return crewMemberRepository.findAll(pageable)
+            .map { crewMemberMapper.toResponse(it) }
     }
 
     @Transactional(readOnly = true)

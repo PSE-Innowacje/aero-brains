@@ -1,51 +1,68 @@
 import React from 'react';
-import { Box, Button } from '@mui/material';
-import type { Operation, OperationStatusCode } from '../../api/types';
+import { Box, Button, Tooltip } from '@mui/material';
+import type { Operation, OperationStatus } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
 
 interface OperationStatusActionsProps {
   operation: Operation;
-  onStatusChange: (newStatus: OperationStatusCode) => void;
+  onStatusChange: (newStatus: OperationStatus) => void;
+  plannedDateFrom?: string;
+  plannedDateTo?: string;
 }
 
 const OperationStatusActions: React.FC<OperationStatusActionsProps> = ({
   operation,
   onStatusChange,
+  plannedDateFrom,
+  plannedDateTo,
 }) => {
   const { user } = useAuth();
-  const role = user?.role;
+  const role = user?.role?.toUpperCase();
   const status = operation.status;
 
   const buttons: React.ReactNode[] = [];
 
-  if (role === 'supervisor' && status === 1) {
+  if (role === 'SUPERVISOR' && status === 'INTRODUCED') {
     buttons.push(
       <Button
         key="reject"
         variant="contained"
         color="error"
-        onClick={() => onStatusChange(2)}
+        onClick={() => onStatusChange('REJECTED')}
       >
         Odrzuć
       </Button>,
-      <Button
-        key="confirm"
-        variant="contained"
-        color="success"
-        onClick={() => onStatusChange(3)}
+    );
+
+    const hasPlannedDates = !!(plannedDateFrom && plannedDateTo);
+    buttons.push(
+      <Tooltip
+        key="confirm-tip"
+        title={hasPlannedDates ? '' : 'Wymagane wypełnienie planowanych dat'}
+        arrow
       >
-        Potwierdź do planu
-      </Button>,
+        <span>
+          <Button
+            key="confirm"
+            variant="contained"
+            color="success"
+            disabled={!hasPlannedDates}
+            onClick={() => onStatusChange('CONFIRMED')}
+          >
+            Potwierdź do planu
+          </Button>
+        </span>
+      </Tooltip>,
     );
   }
 
-  if (role === 'planner' && [1, 3, 4].includes(status)) {
+  if (role === 'PLANNER' && ['INTRODUCED', 'CONFIRMED', 'SCHEDULED'].includes(status)) {
     buttons.push(
       <Button
         key="resign"
         variant="contained"
         color="inherit"
-        onClick={() => onStatusChange(7)}
+        onClick={() => onStatusChange('CANCELLED')}
       >
         Rezygnuj
       </Button>,

@@ -1,17 +1,23 @@
 package pl.aerobrains.orders.application
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.aerobrains.fleet.infrastructure.CrewMemberRepository
 import pl.aerobrains.operations.application.FlightOperationService
+import pl.aerobrains.operations.domain.OperationStatus
 import pl.aerobrains.orders.api.CreateFlightOrderRequest
 import pl.aerobrains.orders.api.FlightOrderListItem
 import pl.aerobrains.orders.api.FlightOrderMapper
 import pl.aerobrains.orders.api.FlightOrderResponse
+import pl.aerobrains.orders.api.SettleFlightOrderRequest
 import pl.aerobrains.orders.api.UpdateFlightOrderRequest
 import pl.aerobrains.orders.domain.FlightOrder
 import pl.aerobrains.orders.domain.OrderStatus
 import pl.aerobrains.orders.infrastructure.FlightOrderRepository
+import pl.aerobrains.shared.exception.BusinessRuleViolationException
 import pl.aerobrains.shared.exception.EntityNotFoundException
 
 @Service
@@ -26,8 +32,9 @@ class FlightOrderService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(): List<FlightOrderListItem> {
-        return mapper.toListItems(repository.findAll())
+    fun findAll(pageable: Pageable): Page<FlightOrderListItem> {
+        return repository.findAll(pageable)
+            .map { mapper.toListItem(it) }
     }
 
     @Transactional(readOnly = true)
@@ -36,7 +43,7 @@ class FlightOrderService(
     }
 
     fun create(request: CreateFlightOrderRequest, pilotEmail: String): FlightOrderResponse {
-        val pilot = crewMemberRepository.findAll().firstOrNull { it.email == pilotEmail }
+        val pilot = crewMemberRepository.findByEmail(pilotEmail)
             ?: throw EntityNotFoundException("CrewMember (pilot by email)", pilotEmail)
 
         val flightDate = request.plannedStartTime.toLocalDate()
@@ -47,6 +54,16 @@ class FlightOrderService(
             plannedFlightDate = flightDate,
             estimatedRouteLengthKm = request.estimatedRouteLengthKm
         )
+
+        // Validate all operations are in CONFIRMED status before scheduling
+        request.operationIds.forEach { opId ->
+            val operation = flightOperationService.getOperation(opId)
+            if (operation.status != OperationStatus.CONFIRMED) {
+                throw BusinessRuleViolationException(
+                    "Operation $opId must be in CONFIRMED status to be added to a flight order (current: ${operation.status.label})"
+                )
+            }
+        }
 
         val order = mapper.toEntity(request)
         order.pilotId = pilot.id
@@ -65,8 +82,10 @@ class FlightOrderService(
 
     fun update(id: Long, request: UpdateFlightOrderRequest, pilotEmail: String): FlightOrderResponse {
         val order = getOrder(id)
-        val pilot = crewMemberRepository.findAll().firstOrNull { it.email == pilotEmail }
+        val pilot = crewMemberRepository.findByEmail(pilotEmail)
             ?: throw EntityNotFoundException("CrewMember (pilot by email)", pilotEmail)
+
+        validateOwnership(order, pilot.id)
 
         val flightDate = request.plannedStartTime.toLocalDate()
         val crewWeight = validator.validate(
@@ -76,6 +95,25 @@ class FlightOrderService(
             plannedFlightDate = flightDate,
             estimatedRouteLengthKm = request.estimatedRouteLengthKm
         )
+
+        // Handle operation changes: unlink removed, schedule new
+        val oldOperationIds = order.operationIds.toSet()
+        val newOperationIds = request.operationIds.toSet()
+        val removedOps = oldOperationIds - newOperationIds
+        val addedOps = newOperationIds - oldOperationIds
+
+        removedOps.forEach { opId ->
+            flightOperationService.unlinkFromOrder(opId, pilotEmail)
+        }
+        addedOps.forEach { opId ->
+            val operation = flightOperationService.getOperation(opId)
+            if (operation.status != OperationStatus.CONFIRMED) {
+                throw BusinessRuleViolationException(
+                    "Operation $opId must be in CONFIRMED status to be added to a flight order (current: ${operation.status.label})"
+                )
+            }
+            flightOperationService.markScheduled(opId, pilotEmail)
+        }
 
         order.plannedStartTime = request.plannedStartTime
         order.plannedEndTime = request.plannedEndTime
@@ -88,48 +126,59 @@ class FlightOrderService(
         order.crewWeight = crewWeight
         order.actualStartTime = request.actualStartTime
         order.actualEndTime = request.actualEndTime
+        order.actualRouteLengthKm = request.actualRouteLengthKm
 
-        return mapper.toResponse(repository.save(order))
+        return mapper.toResponse(order)
     }
 
-    fun submit(id: Long) {
+    fun submit(id: Long, pilotEmail: String) {
         val order = getOrder(id)
+        validateOwnershipByEmail(order, pilotEmail)
         order.submit()
-        repository.save(order)
     }
 
     fun reject(id: Long) {
         val order = getOrder(id)
         order.reject()
-        repository.save(order)
     }
 
     fun accept(id: Long) {
         val order = getOrder(id)
         order.accept()
-        repository.save(order)
     }
 
-    fun settlePartial(id: Long, pilotEmail: String) {
+    fun settlePartial(id: Long, request: SettleFlightOrderRequest, pilotEmail: String) {
         val order = getOrder(id)
-        settlementService.settlePartial(order, pilotEmail)
-        repository.save(order)
+        validateOwnershipByEmail(order, pilotEmail)
+        settlementService.settlePartial(order, request, pilotEmail)
     }
 
-    fun settleComplete(id: Long, pilotEmail: String) {
+    fun settleComplete(id: Long, request: SettleFlightOrderRequest, pilotEmail: String) {
         val order = getOrder(id)
-        settlementService.settleComplete(order, pilotEmail)
-        repository.save(order)
+        validateOwnershipByEmail(order, pilotEmail)
+        settlementService.settleComplete(order, request, pilotEmail)
     }
 
     fun settleNotCompleted(id: Long, pilotEmail: String) {
         val order = getOrder(id)
+        validateOwnershipByEmail(order, pilotEmail)
         settlementService.settleNotCompleted(order, pilotEmail)
-        repository.save(order)
     }
 
     private fun getOrder(id: Long): FlightOrder {
         return repository.findById(id)
             .orElseThrow { EntityNotFoundException("FlightOrder", id) }
+    }
+
+    private fun validateOwnership(order: FlightOrder, pilotId: Long) {
+        if (order.pilotId != pilotId) {
+            throw AccessDeniedException("You can only modify your own flight orders")
+        }
+    }
+
+    private fun validateOwnershipByEmail(order: FlightOrder, pilotEmail: String) {
+        val pilot = crewMemberRepository.findByEmail(pilotEmail)
+            ?: throw EntityNotFoundException("CrewMember (pilot by email)", pilotEmail)
+        validateOwnership(order, pilot.id)
     }
 }

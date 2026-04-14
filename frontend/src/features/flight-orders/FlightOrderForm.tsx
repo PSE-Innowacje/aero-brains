@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
@@ -17,20 +17,23 @@ import {
   Chip,
   Divider,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { flightOrderSchema, type FlightOrderFormData } from './flightOrderSchema';
 import FlightOrderValidation from './FlightOrderValidation';
 import FlightOrderMap from './FlightOrderMap';
 import FlightOrderStatusActions from './FlightOrderStatusActions';
+import SettlementDialog from './SettlementDialog';
 import StatusBadge from '../../shared/components/StatusBadge';
 import { api } from '../../api/client';
 import {
   FLIGHT_ORDER_STATUS_LABELS,
-  type FlightOrderStatusCode,
+  type FlightOrderStatus,
   type CrewMember,
+  type SettleFlightOrderRequest,
 } from '../../api/types';
 import { useAuth } from '../../auth/AuthContext';
-import { canEdit } from '../../shared/utils/permissions';
+import { canEdit, canCreate } from '../../shared/utils/permissions';
+import { calculateRouteDistanceKm, type KmlPoint } from '../../shared/utils/kml';
 
 const FlightOrderForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -72,24 +75,55 @@ const FlightOrderForm: React.FC = () => {
 
   // Active helicopters only
   const activeHelicopters = useMemo(
-    () => allHelicopters.filter((h) => h.status === 'active'),
+    () => allHelicopters.filter((h) => h.status === 'ACTIVE'),
     [allHelicopters],
   );
 
-  // Operations with status = 3 (Potwierdzone do planu)
-  const availableOperations = useMemo(
-    () => allOperations.filter((op) => op.status === 3),
+  // Operations with status = CONFIRMED (Potwierdzone do planu)
+  const confirmedOps = useMemo(
+    () => allOperations.filter((op) => op.status === 'CONFIRMED'),
     [allOperations],
+  );
+
+  // Fetch full details for confirmed operations to get shortDescription
+  const [opDetails, setOpDetails] = useState<Record<number, { shortDescription?: string }>>({});
+  useEffect(() => {
+    if (confirmedOps.length === 0) return;
+    let cancelled = false;
+    const fetch = async () => {
+      const details: Record<number, { shortDescription?: string }> = {};
+      await Promise.all(
+        confirmedOps.map(async (op) => {
+          try {
+            const full = await api.operations.getById(op.id);
+            if (full) details[op.id] = { shortDescription: full.shortDescription };
+          } catch { /* skip */ }
+        }),
+      );
+      if (!cancelled) setOpDetails(details);
+    };
+    fetch();
+    return () => { cancelled = true; };
+  }, [confirmedOps]);
+
+  // Merge descriptions into available operations
+  const availableOperations = useMemo(
+    () => confirmedOps.map((op) => ({
+      ...op,
+      shortDescription: opDetails[op.id]?.shortDescription ?? (op as any).shortDescription,
+    })),
+    [confirmedOps, opDetails],
   );
 
   // Pilots from crew members
   const pilots = useMemo(
-    () => crewMembers.filter((c) => c.role === 'pilot'),
+    () => crewMembers.filter((c) => c.role === 'PILOT'),
     [crewMembers],
   );
 
   const hasEditAccess = role ? canEdit(role, 'flightOrders') : false;
-  const readOnly = isNew ? !hasEditAccess : !hasEditAccess;
+  const hasCreateAccess = role ? canCreate(role, 'flightOrders') : false;
+  const readOnly = isNew ? !hasCreateAccess : !hasEditAccess;
 
   const {
     control,
@@ -97,22 +131,24 @@ const FlightOrderForm: React.FC = () => {
     reset,
     watch,
     setValue,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<FlightOrderFormData>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(flightOrderSchema) as any,
+    mode: 'onChange',
     defaultValues: {
-      plannedStartDateTime: '',
-      plannedLandingDateTime: '',
+      plannedStartTime: '',
+      plannedEndTime: '',
       pilotId: 0,
       helicopterId: 0,
       crewMemberIds: [],
-      startLandingSiteId: 0,
-      endLandingSiteId: 0,
-      selectedOperationIds: [],
-      estimatedRouteDistance: 0,
-      actualStartDateTime: '',
-      actualLandingDateTime: '',
+      departureSiteId: 0,
+      arrivalSiteId: 0,
+      operationIds: [],
+      estimatedRouteLengthKm: 0,
+      actualStartTime: '',
+      actualEndTime: '',
+      actualRouteLengthKm: 0,
     },
   });
 
@@ -136,17 +172,18 @@ const FlightOrderForm: React.FC = () => {
   useEffect(() => {
     if (flightOrder) {
       reset({
-        plannedStartDateTime: flightOrder.plannedStartDateTime,
-        plannedLandingDateTime: flightOrder.plannedLandingDateTime,
+        plannedStartTime: flightOrder.plannedStartTime,
+        plannedEndTime: flightOrder.plannedEndTime,
         pilotId: flightOrder.pilotId,
         helicopterId: flightOrder.helicopterId,
         crewMemberIds: flightOrder.crewMemberIds,
-        startLandingSiteId: flightOrder.startLandingSiteId,
-        endLandingSiteId: flightOrder.endLandingSiteId,
-        selectedOperationIds: flightOrder.selectedOperationIds,
-        estimatedRouteDistance: flightOrder.estimatedRouteDistance,
-        actualStartDateTime: flightOrder.actualStartDateTime ?? '',
-        actualLandingDateTime: flightOrder.actualLandingDateTime ?? '',
+        departureSiteId: flightOrder.departureSiteId,
+        arrivalSiteId: flightOrder.arrivalSiteId,
+        operationIds: flightOrder.operationIds,
+        estimatedRouteLengthKm: flightOrder.estimatedRouteLengthKm,
+        actualStartTime: flightOrder.actualStartTime ?? '',
+        actualEndTime: flightOrder.actualEndTime ?? '',
+        actualRouteLengthKm: flightOrder.actualRouteLengthKm ?? 0,
       });
     }
   }, [flightOrder, reset]);
@@ -184,33 +221,96 @@ const FlightOrderForm: React.FC = () => {
 
   // Resolve landing sites
   const startSite = useMemo(
-    () => landingSites.find((ls) => ls.id === watchedValues.startLandingSiteId),
-    [landingSites, watchedValues.startLandingSiteId],
+    () => landingSites.find((ls) => ls.id === watchedValues.departureSiteId),
+    [landingSites, watchedValues.departureSiteId],
   );
 
   const endSite = useMemo(
-    () => landingSites.find((ls) => ls.id === watchedValues.endLandingSiteId),
-    [landingSites, watchedValues.endLandingSiteId],
+    () => landingSites.find((ls) => ls.id === watchedValues.arrivalSiteId),
+    [landingSites, watchedValues.arrivalSiteId],
   );
 
-  // Resolve operation points for map
-  const operationPoints = useMemo(() => {
-    const points: Array<{ lat: number; lng: number }> = [];
-    const selectedOps = allOperations.filter((op) =>
-      (watchedValues.selectedOperationIds ?? []).includes(op.id),
-    );
-    for (const op of selectedOps) {
-      if (op.kmlPoints) {
-        points.push(...op.kmlPoints);
-      }
+  // Fetch geojson for selected operations — store as separate segments per operation
+  const [operationSegments, setOperationSegments] = useState<Array<Array<{ lat: number; lng: number }>>>([]);
+  const selectedOpIds = watchedValues.operationIds ?? [];
+
+  // Flat list for route calculation
+  const operationPoints = useMemo(
+    () => operationSegments.flat(),
+    [operationSegments],
+  );
+
+  useEffect(() => {
+    if (selectedOpIds.length === 0) {
+      setOperationSegments([]);
+      return;
     }
-    return points;
-  }, [allOperations, watchedValues.selectedOperationIds]);
+    let cancelled = false;
+    const fetchRoutes = async () => {
+      const segmentMap: Record<number, Array<{ lat: number; lng: number }>> = {};
+      await Promise.all(
+        selectedOpIds.map(async (opId) => {
+          try {
+            const geojson = await api.operations.getGeojson(opId);
+            const str = typeof geojson === 'string' ? geojson : JSON.stringify(geojson);
+            const parsed = JSON.parse(str);
+            const points: Array<{ lat: number; lng: number }> = [];
+            const geom = parsed.geometry || parsed;
+            if (geom.type === 'LineString' && Array.isArray(geom.coordinates)) {
+              for (const coord of geom.coordinates) {
+                points.push({ lat: coord[1], lng: coord[0] });
+              }
+            } else if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
+              for (const feature of parsed.features) {
+                if (feature.geometry?.type === 'Point') {
+                  points.push({ lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] });
+                } else if (feature.geometry?.type === 'LineString') {
+                  for (const coord of feature.geometry.coordinates) {
+                    points.push({ lat: coord[1], lng: coord[0] });
+                  }
+                }
+              }
+            }
+            if (points.length > 0) segmentMap[opId] = points;
+          } catch {
+            // skip operations without geojson
+          }
+        }),
+      );
+      if (!cancelled) {
+        // Preserve order of selectedOpIds
+        const ordered = selectedOpIds
+          .filter((id) => segmentMap[id])
+          .map((id) => segmentMap[id]);
+        setOperationSegments(ordered);
+      }
+    };
+    fetchRoutes();
+    return () => { cancelled = true; };
+  }, [selectedOpIds.join(',')]);
+
+  // Auto-calculate route distance when sites or operations change
+  useEffect(() => {
+    const routePoints: KmlPoint[] = [];
+    if (startSite) {
+      routePoints.push({ lat: startSite.latitude, lng: startSite.longitude });
+    }
+    if (operationPoints.length > 0) {
+      routePoints.push(...operationPoints);
+    }
+    if (endSite) {
+      routePoints.push({ lat: endSite.latitude, lng: endSite.longitude });
+    }
+    if (routePoints.length >= 2) {
+      const distance = calculateRouteDistanceKm(routePoints);
+      setValue('estimatedRouteLengthKm', distance);
+    }
+  }, [startSite, endSite, operationPoints, setValue]);
 
   // Check if any validation warnings exist
   const hasValidationWarnings = useMemo(() => {
-    const flightDay = watchedValues.plannedStartDateTime
-      ? watchedValues.plannedStartDateTime.slice(0, 10)
+    const flightDay = watchedValues.plannedStartTime
+      ? watchedValues.plannedStartTime.slice(0, 10)
       : '';
 
     if (selectedHelicopter && flightDay && selectedHelicopter.inspectionExpiryDate) {
@@ -227,7 +327,7 @@ const FlightOrderForm: React.FC = () => {
     if (selectedHelicopter && crewWeight > selectedHelicopter.maxCrewWeight) return true;
     if (
       selectedHelicopter &&
-      watchedValues.estimatedRouteDistance > selectedHelicopter.rangeWithoutLanding
+      watchedValues.estimatedRouteLengthKm > selectedHelicopter.rangeKm
     ) {
       return true;
     }
@@ -240,13 +340,13 @@ const FlightOrderForm: React.FC = () => {
       const payload = {
         ...data,
         crewWeight,
-        actualStartDateTime: data.actualStartDateTime || undefined,
-        actualLandingDateTime: data.actualLandingDateTime || undefined,
+        actualStartTime: data.actualStartTime || undefined,
+        actualEndTime: data.actualEndTime || undefined,
       };
       if (isNew) {
         return api.flightOrders.create({
           ...payload,
-          status: 2 as FlightOrderStatusCode,
+          status: 'SUBMITTED' as FlightOrderStatus,
         });
       }
       return api.flightOrders.update(flightOrderId!, payload);
@@ -257,10 +357,26 @@ const FlightOrderForm: React.FC = () => {
     },
   });
 
-  // Status mutation
+  // Status mutation (for non-settlement transitions: SUBMITTED, ACCEPTED, REJECTED, NOT_COMPLETED)
   const statusMutation = useMutation({
-    mutationFn: (newStatus: FlightOrderStatusCode) =>
+    mutationFn: (newStatus: FlightOrderStatus) =>
       api.flightOrders.updateStatus(flightOrderId!, newStatus),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flightOrders'] });
+      navigate('/flight-orders');
+    },
+  });
+
+  // Settlement mutation (COMPLETED / PARTIALLY_COMPLETED — with actual data)
+  const [settlementType, setSettlementType] = useState<'COMPLETED' | 'PARTIALLY_COMPLETED' | null>(null);
+
+  const settleMutation = useMutation({
+    mutationFn: ({ type, data }: { type: 'COMPLETED' | 'PARTIALLY_COMPLETED'; data: SettleFlightOrderRequest }) => {
+      if (type === 'COMPLETED') {
+        return api.flightOrders.settleComplete(flightOrderId!, data);
+      }
+      return api.flightOrders.settlePartial(flightOrderId!, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['flightOrders'] });
       navigate('/flight-orders');
@@ -271,28 +387,34 @@ const FlightOrderForm: React.FC = () => {
     saveMutation.mutate(data);
   };
 
-  const handleStatusChange = (newStatus: FlightOrderStatusCode) => {
+  const handleStatusChange = (newStatus: FlightOrderStatus) => {
     statusMutation.mutate(newStatus);
+  };
+
+  const handleSettle = (type: 'COMPLETED' | 'PARTIALLY_COMPLETED') => {
+    setSettlementType(type);
+  };
+
+  const handleSettlementConfirm = (data: SettleFlightOrderRequest) => {
+    if (settlementType) {
+      settleMutation.mutate({ type: settlementType, data });
+    }
+    setSettlementType(null);
   };
 
   if (!isNew && isLoading) {
     return <Typography>Ładowanie...</Typography>;
   }
 
-  const showActualFields = flightOrder && flightOrder.status >= 4;
+  const showActualFields = flightOrder && ['ACCEPTED', 'PARTIALLY_COMPLETED', 'COMPLETED', 'NOT_COMPLETED'].includes(flightOrder.status);
 
   return (
-    <Box maxWidth={800}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/flight-orders')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowe zlecenie lotu' : `Zlecenie ${flightOrder?.orderNumber ?? ''}`}
-      </Typography>
+    <>
+      <PageHeader
+        title={isNew ? 'Nowe zlecenie lotu' : `Zlecenie #${flightOrder?.id ?? ''}`}
+        onBack={() => navigate('/flight-orders')}
+      />
+      <Box sx={{ p: 3, maxWidth: 800 }}>
 
       {flightOrder && (
         <Box mb={2}>
@@ -307,16 +429,16 @@ const FlightOrderForm: React.FC = () => {
         <Stack spacing={2}>
           {/* Planned start date/time */}
           <Controller
-            name="plannedStartDateTime"
+            name="plannedStartTime"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Planowana data startu"
+                label="Planowana data startu *"
                 type="datetime-local"
                 InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedStartDateTime}
-                helperText={errors.plannedStartDateTime?.message}
+                error={!!errors.plannedStartTime}
+                helperText={errors.plannedStartTime?.message}
                 fullWidth
                 disabled={readOnly}
               />
@@ -325,16 +447,16 @@ const FlightOrderForm: React.FC = () => {
 
           {/* Planned landing date/time */}
           <Controller
-            name="plannedLandingDateTime"
+            name="plannedEndTime"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
-                label="Planowana data lądowania"
+                label="Planowana data lądowania *"
                 type="datetime-local"
                 InputLabelProps={{ shrink: true }}
-                error={!!errors.plannedLandingDateTime}
-                helperText={errors.plannedLandingDateTime?.message}
+                error={!!errors.plannedEndTime}
+                helperText={errors.plannedEndTime?.message}
                 fullWidth
                 disabled={readOnly}
               />
@@ -347,10 +469,10 @@ const FlightOrderForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.pilotId} disabled={readOnly}>
-                <InputLabel>Pilot</InputLabel>
+                <InputLabel>Pilot *</InputLabel>
                 <Select
                   {...field}
-                  label="Pilot"
+                  label="Pilot *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -373,10 +495,10 @@ const FlightOrderForm: React.FC = () => {
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.helicopterId} disabled={readOnly}>
-                <InputLabel>Helikopter</InputLabel>
+                <InputLabel>Helikopter *</InputLabel>
                 <Select
                   {...field}
-                  label="Helikopter"
+                  label="Helikopter *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -451,16 +573,16 @@ const FlightOrderForm: React.FC = () => {
             InputProps={{ readOnly: true }}
           />
 
-          {/* Start landing site */}
+          {/* Departure site */}
           <Controller
-            name="startLandingSiteId"
+            name="departureSiteId"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.startLandingSiteId} disabled={readOnly}>
-                <InputLabel>Miejsce startu</InputLabel>
+              <FormControl fullWidth error={!!errors.departureSiteId} disabled={readOnly}>
+                <InputLabel>Miejsce startu *</InputLabel>
                 <Select
                   {...field}
-                  label="Miejsce startu"
+                  label="Miejsce startu *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -470,23 +592,23 @@ const FlightOrderForm: React.FC = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.startLandingSiteId && (
-                  <FormHelperText>{errors.startLandingSiteId.message}</FormHelperText>
+                {errors.departureSiteId && (
+                  <FormHelperText>{errors.departureSiteId.message}</FormHelperText>
                 )}
               </FormControl>
             )}
           />
 
-          {/* End landing site */}
+          {/* Arrival site */}
           <Controller
-            name="endLandingSiteId"
+            name="arrivalSiteId"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.endLandingSiteId} disabled={readOnly}>
-                <InputLabel>Miejsce lądowania</InputLabel>
+              <FormControl fullWidth error={!!errors.arrivalSiteId} disabled={readOnly}>
+                <InputLabel>Miejsce lądowania *</InputLabel>
                 <Select
                   {...field}
-                  label="Miejsce lądowania"
+                  label="Miejsce lądowania *"
                   value={field.value || ''}
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 >
@@ -496,8 +618,8 @@ const FlightOrderForm: React.FC = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.endLandingSiteId && (
-                  <FormHelperText>{errors.endLandingSiteId.message}</FormHelperText>
+                {errors.arrivalSiteId && (
+                  <FormHelperText>{errors.arrivalSiteId.message}</FormHelperText>
                 )}
               </FormControl>
             )}
@@ -505,15 +627,15 @@ const FlightOrderForm: React.FC = () => {
 
           {/* Selected operations (multi-select) */}
           <Controller
-            name="selectedOperationIds"
+            name="operationIds"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.selectedOperationIds} disabled={readOnly}>
-                <InputLabel>Operacje</InputLabel>
+              <FormControl fullWidth error={!!errors.operationIds} disabled={readOnly}>
+                <InputLabel>Operacje *</InputLabel>
                 <Select
                   {...field}
                   multiple
-                  label="Operacje"
+                  label="Operacje *"
                   value={field.value ?? []}
                   onChange={(e) => {
                     const value = e.target.value;
@@ -532,7 +654,7 @@ const FlightOrderForm: React.FC = () => {
                             key={opId}
                             label={
                               op
-                                ? `${op.operationNumber} - ${op.shortDescription}`
+                                ? `${op.orderProjectNumber}${op.shortDescription ? ' - ' + op.shortDescription : ''}`
                                 : opId
                             }
                             size="small"
@@ -544,43 +666,119 @@ const FlightOrderForm: React.FC = () => {
                 >
                   {availableOperations.map((op) => (
                     <MenuItem key={op.id} value={op.id}>
-                      {op.operationNumber} - {op.shortDescription}
+                      {op.orderProjectNumber}{op.shortDescription ? ` - ${op.shortDescription}` : ''}
                     </MenuItem>
                   ))}
                 </Select>
-                {errors.selectedOperationIds && (
-                  <FormHelperText>{errors.selectedOperationIds.message}</FormHelperText>
+                {errors.operationIds && (
+                  <FormHelperText>{errors.operationIds.message}</FormHelperText>
                 )}
               </FormControl>
             )}
           />
 
+          {/* Selected operations details */}
+          {selectedOpIds.length > 0 && (
+            <Box
+              sx={{
+                bgcolor: '#f8fafc',
+                borderRadius: '10px',
+                border: '0.5px solid #e2e8f0',
+                overflow: 'hidden',
+              }}
+            >
+              <Box sx={{ px: '14px', py: '10px', borderBottom: '0.5px solid #e2e8f0' }}>
+                <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Wybrane operacje ({selectedOpIds.length})
+                </Typography>
+              </Box>
+              {selectedOpIds.map((opId) => {
+                const op = allOperations.find((o) => o.id === opId);
+                const details = opDetails[opId];
+                if (!op) return null;
+                return (
+                  <Box
+                    key={opId}
+                    sx={{
+                      px: '14px',
+                      py: '10px',
+                      borderBottom: '0.5px solid #f1f5f9',
+                      '&:last-child': { borderBottom: 'none' },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#0f172a', fontFamily: 'monospace' }}>
+                        {op.orderProjectNumber}
+                      </Typography>
+                      {details?.shortDescription && (
+                        <Typography sx={{ fontSize: 12, color: '#475569' }}>
+                          — {details.shortDescription}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      {op.activities && op.activities.length > 0 && (
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          {op.activities.map((a, i) => (
+                            <span
+                              key={i}
+                              style={{
+                                display: 'inline-block',
+                                padding: '1px 6px',
+                                borderRadius: 4,
+                                fontSize: 10,
+                                background: '#e2e8f0',
+                                color: '#475569',
+                              }}
+                            >
+                              {a.activityType}
+                            </span>
+                          ))}
+                        </Box>
+                      )}
+                      {op.plannedDateFrom && (
+                        <Typography sx={{ fontSize: 10, color: '#94a3b8' }}>
+                          📅 {op.plannedDateFrom}{op.plannedDateTo ? ` — ${op.plannedDateTo}` : ''}
+                        </Typography>
+                      )}
+                      {op.routeLengthKm != null && (
+                        <Typography sx={{ fontSize: 10, color: '#94a3b8' }}>
+                          📏 {op.routeLengthKm} km
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          )}
+
           {/* Estimated route distance */}
           <Controller
-            name="estimatedRouteDistance"
+            name="estimatedRouteLengthKm"
             control={control}
             render={({ field }) => (
               <TextField
                 {...field}
                 onChange={(e) => field.onChange(Number(e.target.value))}
-                label="Szacowana długość trasy (km)"
+                label="Szacowana długość trasy (km) *"
                 type="number"
-                error={!!errors.estimatedRouteDistance}
-                helperText={errors.estimatedRouteDistance?.message}
+                error={!!errors.estimatedRouteLengthKm}
+                helperText={errors.estimatedRouteLengthKm?.message}
                 fullWidth
                 disabled={readOnly}
               />
             )}
           />
 
-          {/* Actual start/landing - only shown when status >= 4 */}
+          {/* Actual start/landing - only shown for certain statuses */}
           {showActualFields && (
             <>
               <Divider />
               <Typography variant="subtitle1">Dane rzeczywiste</Typography>
 
               <Controller
-                name="actualStartDateTime"
+                name="actualStartTime"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -588,8 +786,8 @@ const FlightOrderForm: React.FC = () => {
                     label="Rzeczywista data startu"
                     type="datetime-local"
                     InputLabelProps={{ shrink: true }}
-                    error={!!errors.actualStartDateTime}
-                    helperText={errors.actualStartDateTime?.message}
+                    error={!!errors.actualStartTime}
+                    helperText={errors.actualStartTime?.message}
                     fullWidth
                     disabled={readOnly}
                   />
@@ -597,7 +795,7 @@ const FlightOrderForm: React.FC = () => {
               />
 
               <Controller
-                name="actualLandingDateTime"
+                name="actualEndTime"
                 control={control}
                 render={({ field }) => (
                   <TextField
@@ -605,8 +803,25 @@ const FlightOrderForm: React.FC = () => {
                     label="Rzeczywista data lądowania"
                     type="datetime-local"
                     InputLabelProps={{ shrink: true }}
-                    error={!!errors.actualLandingDateTime}
-                    helperText={errors.actualLandingDateTime?.message}
+                    error={!!errors.actualEndTime}
+                    helperText={errors.actualEndTime?.message}
+                    fullWidth
+                    disabled={readOnly}
+                  />
+                )}
+              />
+
+              <Controller
+                name="actualRouteLengthKm"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    label="Rzeczywista długość trasy (km)"
+                    type="number"
+                    error={!!errors.actualRouteLengthKm}
+                    helperText={errors.actualRouteLengthKm?.message}
                     fullWidth
                     disabled={readOnly}
                   />
@@ -625,22 +840,18 @@ const FlightOrderForm: React.FC = () => {
           />
 
           {/* Map */}
-          <Box>
-            <Typography variant="h6" mb={1}>
-              Mapa trasy
-            </Typography>
-            <FlightOrderMap
-              startSite={startSite}
-              endSite={endSite}
-              operationPoints={operationPoints}
-            />
-          </Box>
+          <FlightOrderMap
+            startSite={startSite}
+            endSite={endSite}
+            operationSegments={operationSegments}
+          />
 
           {/* Status actions */}
           {flightOrder && !isNew && (
             <FlightOrderStatusActions
               flightOrder={flightOrder}
               onStatusChange={handleStatusChange}
+              onSettle={handleSettle}
             />
           )}
 
@@ -650,7 +861,7 @@ const FlightOrderForm: React.FC = () => {
               <Button
                 type="submit"
                 variant="contained"
-                disabled={saveMutation.isPending || hasValidationWarnings}
+                disabled={saveMutation.isPending || hasValidationWarnings || !isValid}
               >
                 Zapisz
               </Button>
@@ -669,7 +880,20 @@ const FlightOrderForm: React.FC = () => {
           )}
         </Stack>
       </form>
-    </Box>
+      </Box>
+
+      {/* Settlement dialog */}
+      {flightOrder && settlementType && (
+        <SettlementDialog
+          open={true}
+          type={settlementType}
+          flightOrder={flightOrder}
+          operations={allOperations}
+          onConfirm={handleSettlementConfirm}
+          onCancel={() => setSettlementType(null)}
+        />
+      )}
+    </>
   );
 };
 

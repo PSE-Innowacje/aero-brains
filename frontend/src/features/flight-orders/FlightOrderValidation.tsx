@@ -20,8 +20,8 @@ const FlightOrderValidation: React.FC<FlightOrderValidationProps> = ({
 }) => {
   const warnings: string[] = [];
 
-  const flightDay = flightOrder.plannedStartDateTime
-    ? flightOrder.plannedStartDateTime.slice(0, 10)
+  const flightDay = flightOrder.plannedStartTime
+    ? flightOrder.plannedStartTime.slice(0, 10)
     : '';
 
   // 1. Helicopter inspection expired on flight day
@@ -57,7 +57,7 @@ const FlightOrderValidation: React.FC<FlightOrderValidationProps> = ({
   // 5. Route distance exceeds helicopter range
   if (
     helicopter &&
-    flightOrder.estimatedRouteDistance > helicopter.rangeWithoutLanding
+    flightOrder.estimatedRouteLengthKm > helicopter.rangeKm
   ) {
     warnings.push('Szacowana długość trasy przekracza zasięg helikoptera');
   }

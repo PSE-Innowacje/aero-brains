@@ -1,0 +1,191 @@
+/* Global styles matching aero_leaflet.html prototype */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f0f4f8;
+  color: #1e293b;
+}
+
+/* Form inputs — match prototype .form-row styles */
+.MuiOutlinedInput-root {
+  font-size: 12px !important;
+  border-radius: 7px !important;
+}
+
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: #e2e8f0 !important;
+  border-width: 0.5px !important;
+}
+
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #cbd5e1 !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #3b7ff5 !important;
+  border-width: 1.5px !important;
+}
+
+.MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline {
+  border-color: #dc2626 !important;
+}
+
+.MuiOutlinedInput-input {
+  padding: 10px 12px !important;
+  font-size: 12px !important;
+  color: #1e293b !important;
+}
+
+/* Fix select padding to match text inputs */
+.MuiSelect-select.MuiOutlinedInput-input {
+  padding: 10px 12px !important;
+}
+
+.MuiInputLabel-root {
+  font-size: 13px !important;
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+/* Shrunk label (when field has value or is focused) */
+.MuiInputLabel-root.MuiInputLabel-shrink {
+  transform: translate(14px, -9px) scale(0.75) !important;
+}
+
+/* Unshrunk label (placeholder position) */
+.MuiInputLabel-root:not(.MuiInputLabel-shrink) {
+  transform: translate(14px, 10px) scale(1) !important;
+}
+
+.MuiInputLabel-root.Mui-focused {
+  color: #3b7ff5 !important;
+}
+
+.MuiInputLabel-root.Mui-error {
+  color: #dc2626 !important;
+}
+
+.MuiFormHelperText-root {
+  font-size: 11px !important;
+  margin-top: 3px !important;
+}
+
+.MuiFormHelperText-root.Mui-error {
+  color: #dc2626 !important;
+}
+
+/* Select inputs */
+.MuiSelect-select {
+  font-size: 12px !important;
+}
+
+/* Chip overrides */
+.MuiChip-root {
+  font-size: 11px !important;
+  height: 24px !important;
+  border-radius: 20px !important;
+}
+
+.MuiChip-label {
+  padding: 0 8px !important;
+}
+
+/* Button overrides to match prototype .btn classes */
+.MuiButton-contained {
+  box-shadow: none !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
+  border-radius: 7px !important;
+}
+
+.MuiButton-contained:hover {
+  box-shadow: none !important;
+}
+
+.MuiButton-outlined {
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  padding: 6px 12px !important;
+  border-radius: 7px !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+.MuiButton-outlined:hover {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Alert overrides to match prototype .alert styles */
+.MuiAlert-root {
+  border-radius: 7px !important;
+  font-size: 12px !important;
+  padding: 9px 13px !important;
+}
+
+.MuiAlert-standardWarning {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border-left: 3px solid #f59e0b !important;
+}
+
+.MuiAlert-standardInfo {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  border-left: 3px solid #3b82f6 !important;
+}
+
+.MuiAlert-standardError {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-left: 3px solid #dc2626 !important;
+}
+
+/* Divider */
+.MuiDivider-root {
+  border-color: #e2e8f0 !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Leaflet popup overrides from prototype */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  border: 0.5px solid #e2e8f0 !important;
+}
+
+.leaflet-popup-content {
+  font-family: system-ui, sans-serif !important;
+  font-size: 12px !important;
+  margin: 10px 14px !important;
+}
+
+.leaflet-popup-content strong {
+  font-size: 13px;
+  display: block;
+  margin-bottom: 3px;
+  color: #0f172a;
+}

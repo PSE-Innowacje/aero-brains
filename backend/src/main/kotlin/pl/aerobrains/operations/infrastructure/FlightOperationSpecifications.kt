@@ -16,7 +16,8 @@ object FlightOperationSpecifications {
 
     fun orderProjectNumberContains(value: String): Specification<FlightOperation> {
         return Specification { root, _, cb ->
-            cb.like(cb.upper(root.get("orderProjectNumber")), "%${value.uppercase()}%")
+            val sanitized = value.uppercase().replace("%", "\\%").replace("_", "\\_")
+            cb.like(cb.upper(root.get("orderProjectNumber")), "%${sanitized}%", '\\')
         }
     }
 

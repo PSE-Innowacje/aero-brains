@@ -1,39 +1,40 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  AppBar,
+  Avatar,
   Box,
   Button,
+  Divider,
   Drawer,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  ListSubheader,
-  Toolbar,
   Typography,
 } from '@mui/material';
-import FlightIcon from '@mui/icons-material/Flight';
-import PeopleIcon from '@mui/icons-material/People';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
-import LockIcon from '@mui/icons-material/Lock';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import DescriptionIcon from '@mui/icons-material/Description';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../auth/AuthContext';
 import { canAccessMenu } from '../shared/utils/permissions';
 import { menuConfig } from './MenuConfig';
 
-const DRAWER_WIDTH = 260;
+const DRAWER_WIDTH = 230;
 
-const iconMap: Record<string, React.ReactElement> = {
-  '/helicopters': <FlightIcon />,
-  '/crew': <PeopleIcon />,
-  '/landing-sites': <FlightLandIcon />,
-  '/users': <LockIcon />,
-  '/operations': <AssignmentIcon />,
-  '/flight-orders': <DescriptionIcon />,
+// Icons matching the reference HTML file
+const iconMap: Record<string, string> = {
+  '/helicopters': '\u{1F681}',     // 🚁
+  '/crew': '\u{1F464}',            // 👤
+  '/landing-sites': '\u{1F6EC}',   // 🛬
+  '/users': '\u{1F510}',           // 🔐
+  '/operations': '\u{1F4CB}',      // 📋
+  '/flight-orders': '\u{1F4DD}',   // 📝
 };
+
+const roleLabelMap: Record<string, string> = {
+  ADMINISTRATOR: 'Administrator systemu',
+  PLANNER: 'Osoba planująca',
+  SUPERVISOR: 'Osoba nadzorująca',
+  PILOT: 'Pilot',
+};
+
+function getInitials(firstName: string, lastName: string): string {
+  return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+}
 
 const AppShell: React.FC = () => {
   const { user, logout } = useAuth();
@@ -45,40 +46,9 @@ const AppShell: React.FC = () => {
     navigate('/login');
   };
 
-  const roleLabelMap: Record<string, string> = {
-    admin: 'Administrator',
-    planner: 'Planista',
-    supervisor: 'Nadzorca',
-    pilot: 'Pilot',
-  };
-
   return (
-    <Box sx={{ display: 'flex' }}>
-      <AppBar
-        position="fixed"
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-      >
-        <Toolbar>
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
-            AERO
-          </Typography>
-          {user && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant="body2">
-                {user.firstName} {user.lastName} ({roleLabelMap[user.role] ?? user.role})
-              </Typography>
-              <Button
-                color="inherit"
-                startIcon={<LogoutIcon />}
-                onClick={handleLogout}
-              >
-                Wyloguj
-              </Button>
-            </Box>
-          )}
-        </Toolbar>
-      </AppBar>
-
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      {/* ── Sidebar ── */}
       <Drawer
         variant="permanent"
         sx={{
@@ -87,91 +57,229 @@ const AppShell: React.FC = () => {
           '& .MuiDrawer-paper': {
             width: DRAWER_WIDTH,
             boxSizing: 'border-box',
-            bgcolor: '#fafafa',
-            borderRight: '1px solid #e0e0e0',
+            bgcolor: '#0d1f3c',
+            border: 'none',
+            display: 'flex',
+            flexDirection: 'column',
           },
         }}
       >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto', pt: 1 }}>
+        {/* Logo */}
+        <Box
+          sx={{
+            px: 2,
+            py: 2,
+            borderBottom: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.2,
+          }}
+        >
+          <Box sx={{ fontSize: 22 }}>{'\u{1F681}'}</Box>
+          <Box>
+            <Typography
+              sx={{
+                fontSize: 19,
+                fontWeight: 700,
+                color: '#fff',
+                letterSpacing: '-0.5px',
+                lineHeight: 1.2,
+              }}
+            >
+              AERO
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 9,
+                color: 'rgba(255,255,255,0.35)',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+              }}
+            >
+              Operacje lotnicze
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* User area */}
+        {user && (
+          <Box
+            sx={{
+              px: 1.5,
+              py: 1.2,
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 1,
+                py: 0.75,
+                borderRadius: '8px',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' },
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: 28,
+                  height: 28,
+                  bgcolor: '#3b7ff5',
+                  fontSize: 11,
+                  fontWeight: 700,
+                }}
+              >
+                {getInitials(user.firstName, user.lastName)}
+              </Avatar>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: '#fff',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {user.firstName} {user.lastName}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 10,
+                    color: 'rgba(255,255,255,0.4)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {roleLabelMap[user.role] ?? user.role}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        )}
+
+        {/* Navigation */}
+        <Box sx={{ flex: 1, overflow: 'auto', pt: 1 }}>
           {menuConfig
             .filter((group) => user && canAccessMenu(user.role, group.menuKey))
             .map((group) => (
-              <List
-                key={group.menuKey}
-                subheader={
-                  <ListSubheader
-                    component="div"
-                    sx={{
-                      bgcolor: 'transparent',
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      color: 'text.secondary',
-                      lineHeight: '36px',
-                      mt: 1,
-                    }}
-                  >
-                    {group.label}
-                  </ListSubheader>
-                }
-              >
-                {group.items.map((item) => {
-                  const isActive = location.pathname === item.path ||
+              <Box key={group.menuKey} sx={{ px: 1.5, py: 0.5 }}>
+                {/* Section label */}
+                <Typography
+                  sx={{
+                    fontSize: 9,
+                    textTransform: 'uppercase',
+                    letterSpacing: '2px',
+                    color: 'rgba(255,255,255,0.25)',
+                    px: 1,
+                    mb: 0.6,
+                    mt: 1,
+                  }}
+                >
+                  {group.label}
+                </Typography>
+
+                {/* Nav items */}
+                {group.items
+                  .filter((item) => !item.roles || (user && item.roles.includes(user.role)))
+                  .map((item) => {
+                  const isActive =
+                    location.pathname === item.path ||
                     location.pathname.startsWith(item.path + '/');
+
                   return (
-                    <ListItemButton
+                    <Box
                       key={item.path}
-                      selected={isActive}
                       onClick={() => navigate(item.path)}
                       sx={{
-                        mx: 1,
-                        borderRadius: 1,
-                        mb: 0.5,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '9px',
+                        px: '10px',
+                        py: '7px',
+                        borderRadius: '7px',
+                        cursor: 'pointer',
+                        mb: '1px',
+                        fontSize: 13,
+                        transition: 'all 0.15s',
+                        color: isActive
+                          ? '#6ea8fe'
+                          : 'rgba(255,255,255,0.55)',
+                        fontWeight: isActive ? 500 : 400,
+                        bgcolor: isActive
+                          ? 'rgba(59,127,245,0.2)'
+                          : 'transparent',
                         '&:hover': {
-                          bgcolor: '#e3f2fd',
-                        },
-                        '&.Mui-selected': {
-                          bgcolor: 'primary.main',
-                          color: 'primary.contrastText',
-                          '&:hover': {
-                            bgcolor: 'primary.dark',
-                          },
-                          '& .MuiListItemIcon-root': {
-                            color: 'primary.contrastText',
-                          },
+                          bgcolor: isActive
+                            ? 'rgba(59,127,245,0.2)'
+                            : 'rgba(255,255,255,0.07)',
+                          color: isActive
+                            ? '#6ea8fe'
+                            : 'rgba(255,255,255,0.9)',
                         },
                       }}
                     >
-                      <ListItemIcon
-                        sx={{
-                          minWidth: 36,
-                          color: isActive ? 'inherit' : 'text.secondary',
-                        }}
+                      <Box
+                        component="span"
+                        sx={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}
                       >
-                        {iconMap[item.path] ?? <AssignmentIcon />}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.label}
-                        primaryTypographyProps={{
-                          fontSize: '0.875rem',
-                          fontWeight: isActive ? 600 : 400,
-                        }}
-                      />
-                    </ListItemButton>
+                        {iconMap[item.path] ?? '\u{1F4CB}'}
+                      </Box>
+                      {item.label}
+                    </Box>
                   );
                 })}
-              </List>
+              </Box>
             ))}
+        </Box>
+
+        {/* Logout at bottom */}
+        <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+        <Box sx={{ px: 1.5, py: 1.5 }}>
+          <Button
+            startIcon={<LogoutIcon sx={{ fontSize: '16px !important' }} />}
+            onClick={handleLogout}
+            fullWidth
+            sx={{
+              justifyContent: 'flex-start',
+              color: 'rgba(255,255,255,0.45)',
+              fontSize: 12,
+              textTransform: 'none',
+              borderRadius: '8px',
+              px: '12px',
+              py: '8px',
+              border: '0.5px solid rgba(255,255,255,0.1)',
+              '&:hover': {
+                bgcolor: 'rgba(220,38,38,0.18)',
+                color: '#fca5a5',
+                borderColor: 'rgba(220,38,38,0.3)',
+              },
+            }}
+          >
+            Wyloguj
+          </Button>
         </Box>
       </Drawer>
 
+      {/* ── Main content ── */}
       <Box
         component="main"
-        sx={{ flexGrow: 1, p: 3, mt: 8 }}
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          bgcolor: '#f0f4f8',
+          minHeight: '100vh',
+        }}
       >
-        <Outlet />
+        {/* Page content */}
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

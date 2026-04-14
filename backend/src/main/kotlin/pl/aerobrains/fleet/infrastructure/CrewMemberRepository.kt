@@ -6,6 +6,7 @@ import pl.aerobrains.fleet.domain.CrewMemberRole
 
 interface CrewMemberRepository : JpaRepository<CrewMember, Long> {
     fun existsByEmail(email: String): Boolean
+    fun findByEmail(email: String): CrewMember?
     fun findAllByOrderByEmailAsc(): List<CrewMember>
     fun findAllByRole(role: CrewMemberRole): List<CrewMember>
 }

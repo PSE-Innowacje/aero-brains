@@ -1,40 +1,51 @@
+// Spring Data Page response
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
 // Roles
-export type UserRole = 'admin' | 'planner' | 'supervisor' | 'pilot';
+export type UserRole = 'ADMINISTRATOR' | 'PLANNER' | 'SUPERVISOR' | 'PILOT';
 
 // Helicopter
 export interface Helicopter {
   id: number;
   registrationNumber: string;
-  type: string;
+  helicopterType: string;
   description?: string;
   maxCrewCount: number;
   maxCrewWeight: number; // kg
-  status: 'active' | 'inactive';
-  inspectionExpiryDate?: string; // ISO date, required when active
-  rangeWithoutLanding: number; // km
-  imageUrl?: string;
+  status: string; // e.g. "ACTIVE", "INACTIVE"
+  inspectionExpiryDate?: string; // ISO date
+  rangeKm: number; // km
+  imageUrl?: string; // frontend-only field
 }
 
 // Crew Member
-export type CrewRole = 'pilot' | 'observer';
-
 export interface CrewMember {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
-  weight: number; // kg 30-200
-  role: CrewRole;
-  pilotLicenseNumber?: string; // required for pilot
-  licenseExpiryDate?: string; // required for pilot
+  weight: number; // kg
+  role: string; // e.g. "PILOT", "OBSERVER"
+  pilotLicenseNumber?: string;
+  licenseExpiryDate?: string;
   trainingExpiryDate: string;
 }
 
-// Landing Site
+// Landing Site (flat structure)
 export interface LandingSite {
   id: number;
   name: string;
-  coordinates: { lat: number; lng: number };
+  latitude: number;
+  longitude: number;
 }
 
 // User
@@ -43,99 +54,166 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: UserRole;
+  role: string;
 }
 
-// Operation status codes 1-7
-export type OperationStatusCode = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+// Operation status — backend string values
+export type OperationStatus =
+  | 'INTRODUCED'
+  | 'REJECTED'
+  | 'CONFIRMED'
+  | 'SCHEDULED'
+  | 'PARTIALLY_COMPLETED'
+  | 'COMPLETED'
+  | 'CANCELLED';
 
-export const OPERATION_STATUS_LABELS: Record<OperationStatusCode, string> = {
-  1: 'Wprowadzone',
-  2: 'Odrzucone',
-  3: 'Potwierdzone do planu',
-  4: 'Zaplanowane do zlecenia',
-  5: 'Częściowo zrealizowane',
-  6: 'Zrealizowane',
-  7: 'Rezygnacja',
+export const OPERATION_STATUS_LABELS: Record<OperationStatus, string> = {
+  INTRODUCED: 'Wprowadzone',
+  REJECTED: 'Odrzucone',
+  CONFIRMED: 'Potwierdzone do planu',
+  SCHEDULED: 'Zaplanowane do zlecenia',
+  PARTIALLY_COMPLETED: 'Częściowo zrealizowane',
+  COMPLETED: 'Zrealizowane',
+  CANCELLED: 'Rezygnacja',
 };
 
-// Activity types
+// Activity types — must match backend enum: ActivityType.kt
 export type ActivityType =
-  | 'visual_inspection'
-  | '3d_scan'
-  | 'fault_location'
-  | 'photos'
-  | 'patrol';
+  | 'VISUAL_INSPECTION'
+  | 'SCAN_3D'
+  | 'FAULT_LOCATION'
+  | 'PHOTOS'
+  | 'PATROL'
+  | 'OTHER';
 
 export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
-  visual_inspection: 'Oględziny wizualne',
-  '3d_scan': 'Skan 3D',
-  fault_location: 'Lokalizacja awarii',
-  photos: 'Zdjęcia',
-  patrol: 'Patrolowanie',
+  VISUAL_INSPECTION: 'Oględziny wizualne',
+  SCAN_3D: 'Skan 3D',
+  FAULT_LOCATION: 'Lokalizacja awarii',
+  PHOTOS: 'Zdjęcia',
+  PATROL: 'Patrolowanie',
+  OTHER: 'Inne',
 };
 
-// Operation
-export interface Operation {
-  id: number;
-  operationNumber: string; // auto
-  orderNumber: string; // e.g. DE-25-12020
-  shortDescription: string;
-  kmlFileUrl?: string;
-  kmlFileName?: string;
-  kmlPoints?: Array<{ lat: number; lng: number }>;
-  proposedDateFrom?: string;
-  proposedDateTo?: string;
-  activityTypes: ActivityType[];
-  additionalInfo?: string;
-  routeDistanceKm: number;
-  plannedDateFrom?: string;
-  plannedDateTo?: string;
-  comments: Array<{ text: string; date: string; author: string }>;
-  status: OperationStatusCode;
-  createdBy: string; // email
-  contactPersons?: string[];
-  postRealizationNotes?: string;
-  linkedFlightOrderIds: number[];
+// Activity type entry (backend structure)
+export interface ActivityTypeEntry {
+  activityType: string;
+  description?: string;
 }
 
-// Flight order status codes 1-7
-export type FlightOrderStatusCode = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+// Comment response from backend
+export interface CommentResponse {
+  id: number;
+  content: string;
+  authorEmail: string;
+  createdAt: string; // ISO date-time
+}
 
-export const FLIGHT_ORDER_STATUS_LABELS: Record<FlightOrderStatusCode, string> = {
-  1: 'Wprowadzone',
-  2: 'Przekazane do akceptacji',
-  3: 'Odrzucone',
-  4: 'Zaakceptowane',
-  5: 'Zrealizowane w części',
-  6: 'Zrealizowane w całości',
-  7: 'Nie zrealizowane',
+// Change log response from backend
+export interface ChangeLogResponse {
+  id: number;
+  fieldName: string;
+  oldValue?: string;
+  newValue?: string;
+  changedByEmail: string;
+  changedAt: string; // ISO date-time
+}
+
+// Flight Operation (was Operation)
+export interface FlightOperation {
+  id: number;
+  orderProjectNumber: string;
+  shortDescription: string;
+  kmlFileName?: string;
+  geojsonContent?: string; // GeoJSON string from backend
+  proposedDateFrom?: string;
+  proposedDateTo?: string;
+  activities: ActivityTypeEntry[];
+  additionalInfo?: string;
+  routeLengthKm: number;
+  plannedDateFrom?: string;
+  plannedDateTo?: string;
+  status: OperationStatus;
+  createdByEmail: string;
+  contactEmails?: string;
+  postCompletionNotes?: string;
+  comments: CommentResponse[];
+  changeLog: ChangeLogResponse[];
+  createdAt: string; // ISO date-time
+  updatedAt: string; // ISO date-time
+}
+
+// Keep old name as alias for migration convenience
+export type Operation = FlightOperation;
+
+// Flight order status — backend string values
+export type FlightOrderStatus =
+  | 'INTRODUCED'
+  | 'SUBMITTED'
+  | 'REJECTED'
+  | 'ACCEPTED'
+  | 'PARTIALLY_COMPLETED'
+  | 'COMPLETED'
+  | 'NOT_COMPLETED';
+
+export const FLIGHT_ORDER_STATUS_LABELS: Record<FlightOrderStatus, string> = {
+  INTRODUCED: 'Wprowadzone',
+  SUBMITTED: 'Przekazane do akceptacji',
+  REJECTED: 'Odrzucone',
+  ACCEPTED: 'Zaakceptowane',
+  PARTIALLY_COMPLETED: 'Zrealizowane w części',
+  COMPLETED: 'Zrealizowane w całości',
+  NOT_COMPLETED: 'Nie zrealizowane',
 };
 
 // Flight Order
 export interface FlightOrder {
   id: number;
-  orderNumber: string; // auto
-  plannedStartDateTime: string;
-  plannedLandingDateTime: string;
+  plannedStartTime: string; // ISO date-time
+  plannedEndTime: string; // ISO date-time
   pilotId: number;
-  status: FlightOrderStatusCode;
+  status: FlightOrderStatus;
   helicopterId: number;
   crewMemberIds: number[];
-  crewWeight: number; // auto-calculated kg
-  startLandingSiteId: number;
-  endLandingSiteId: number;
-  selectedOperationIds: number[];
-  estimatedRouteDistance: number; // km
-  actualStartDateTime?: string;
-  actualLandingDateTime?: string;
+  crewWeight: number; // kg
+  departureSiteId: number;
+  arrivalSiteId: number;
+  operationIds: number[];
+  estimatedRouteLengthKm: number; // km
+  actualStartTime?: string;
+  actualEndTime?: string;
+  actualRouteLengthKm?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Settlement
+export type OperationSettlementStatus = 'COMPLETED' | 'PARTIALLY_COMPLETED' | 'NOT_COMPLETED';
+
+export interface SettleFlightOrderRequest {
+  actualStartTime: string;
+  actualEndTime: string;
+  actualRouteLengthKm: number;
+  operationStatuses?: Record<number, OperationSettlementStatus>;
 }
 
 // Auth
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  email: string;
+  role: string;
+}
+
 export interface AuthUser {
   id: number;
   email: string;
   firstName: string;
   lastName: string;
   role: UserRole;
+  token: string;
 }

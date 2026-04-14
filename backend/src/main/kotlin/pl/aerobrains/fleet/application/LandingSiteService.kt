@@ -1,5 +1,7 @@
 package pl.aerobrains.fleet.application
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pl.aerobrains.fleet.api.CreateLandingSiteRequest
@@ -20,10 +22,9 @@ class LandingSiteService(
 ) {
 
     @Transactional(readOnly = true)
-    fun findAll(): List<LandingSiteResponse> {
-        return landingSiteMapper.toResponseList(
-            landingSiteRepository.findAllByOrderByNameAsc()
-        )
+    fun findAll(pageable: Pageable): Page<LandingSiteResponse> {
+        return landingSiteRepository.findAll(pageable)
+            .map { landingSiteMapper.toResponse(it) }
     }
 
     @Transactional(readOnly = true)
@@ -46,8 +47,8 @@ class LandingSiteService(
 
         landingSite.name = request.name
         landingSite.coordinates = Coordinates(
-            request.latitude.toBigDecimal(),
-            request.longitude.toBigDecimal()
+            java.math.BigDecimal.valueOf(request.latitude),
+            java.math.BigDecimal.valueOf(request.longitude)
         )
 
         return landingSiteMapper.toResponse(landingSiteRepository.save(landingSite))

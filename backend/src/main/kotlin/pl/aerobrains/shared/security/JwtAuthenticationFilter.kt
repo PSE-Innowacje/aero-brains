@@ -8,10 +8,12 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import pl.aerobrains.shared.security.user.UserRepository
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val userRepository: UserRepository
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -23,11 +25,13 @@ class JwtAuthenticationFilter(
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             val email = jwtTokenProvider.getEmailFromToken(token)
-            val role = jwtTokenProvider.getRoleFromToken(token)
-            val authorities = listOf(SimpleGrantedAuthority("ROLE_${role.name}"))
+            val user = userRepository.findByEmail(email).orElse(null)
 
-            val authentication = UsernamePasswordAuthenticationToken(email, null, authorities)
-            SecurityContextHolder.getContext().authentication = authentication
+            if (user != null) {
+                val authorities = listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
+                val authentication = UsernamePasswordAuthenticationToken(email, null, authorities)
+                SecurityContextHolder.getContext().authentication = authentication
+            }
         }
 
         filterChain.doFilter(request, response)

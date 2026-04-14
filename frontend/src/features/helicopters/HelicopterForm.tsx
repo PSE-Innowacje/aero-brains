@@ -17,7 +17,7 @@ import {
   Card,
   CardMedia,
 } from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PageHeader from '../../shared/components/PageHeader';
 import { helicopterSchema, type HelicopterFormData } from './helicopterSchema';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
@@ -44,18 +44,20 @@ const HelicopterForm: React.FC = () => {
     handleSubmit,
     reset,
     watch,
-    formState: { errors },
+    trigger,
+    formState: { errors, isValid },
   } = useForm<HelicopterFormData>({
     resolver: zodResolver(helicopterSchema),
+    mode: 'onChange',
     defaultValues: {
       registrationNumber: '',
-      type: '',
+      helicopterType: '',
       description: '',
       maxCrewCount: 1,
       maxCrewWeight: 1,
-      status: 'active',
+      status: 'ACTIVE',
       inspectionExpiryDate: '',
-      rangeWithoutLanding: 1,
+      rangeKm: 1,
     },
   });
 
@@ -63,18 +65,23 @@ const HelicopterForm: React.FC = () => {
     if (helicopter) {
       reset({
         registrationNumber: helicopter.registrationNumber,
-        type: helicopter.type,
+        helicopterType: helicopter.helicopterType,
         description: helicopter.description ?? '',
         maxCrewCount: helicopter.maxCrewCount,
         maxCrewWeight: helicopter.maxCrewWeight,
         status: helicopter.status,
         inspectionExpiryDate: helicopter.inspectionExpiryDate ?? '',
-        rangeWithoutLanding: helicopter.rangeWithoutLanding,
+        rangeKm: helicopter.rangeKm,
       });
     }
   }, [helicopter, reset]);
 
   const statusValue = watch('status');
+
+  // Re-validate when status changes (refine depends on status for inspectionExpiryDate)
+  useEffect(() => {
+    trigger();
+  }, [statusValue, trigger]);
 
   const saveMutation = useMutation({
     mutationFn: (data: HelicopterFormData) => {
@@ -103,18 +110,14 @@ const HelicopterForm: React.FC = () => {
   }
 
   return (
-    <Box>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/helicopters')}
-        sx={{ mb: 1 }}
-      >
-        Powrót do listy
-      </Button>
-      <Typography variant="h5" mb={2}>
-        {isNew ? 'Nowy helikopter' : 'Edycja helikoptera'}
-      </Typography>
+    <>
+      <PageHeader
+        title={isNew ? 'Nowy helikopter' : 'Edycja helikoptera'}
+        subtitle={!isNew ? helicopter?.registrationNumber : undefined}
+        onBack={() => navigate('/helicopters')}
+      />
 
+      <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start' }}>
         {/* Left column — form */}
         <Box sx={{ flex: 1, minWidth: 0, maxWidth: 600 }}>
@@ -126,7 +129,7 @@ const HelicopterForm: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Numer rejestracyjny"
+                    label="Numer rejestracyjny *"
                     error={!!errors.registrationNumber}
                     helperText={errors.registrationNumber?.message}
                     fullWidth
@@ -136,14 +139,14 @@ const HelicopterForm: React.FC = () => {
               />
 
               <Controller
-                name="type"
+                name="helicopterType"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Typ"
-                    error={!!errors.type}
-                    helperText={errors.type?.message}
+                    label="Typ *"
+                    error={!!errors.helicopterType}
+                    helperText={errors.helicopterType?.message}
                     fullWidth
                     disabled={readOnly}
                   />
@@ -172,7 +175,7 @@ const HelicopterForm: React.FC = () => {
                   <TextField
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    label="Maks. liczba załogi"
+                    label="Maks. liczba załogi *"
                     type="number"
                     error={!!errors.maxCrewCount}
                     helperText={errors.maxCrewCount?.message}
@@ -189,7 +192,7 @@ const HelicopterForm: React.FC = () => {
                   <TextField
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    label="Maks. waga załogi (kg)"
+                    label="Maks. waga załogi (kg) *"
                     type="number"
                     error={!!errors.maxCrewWeight}
                     helperText={errors.maxCrewWeight?.message}
@@ -204,10 +207,10 @@ const HelicopterForm: React.FC = () => {
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.status} disabled={readOnly}>
-                    <InputLabel>Status</InputLabel>
-                    <Select {...field} label="Status">
-                      <MenuItem value="active">Aktywny</MenuItem>
-                      <MenuItem value="inactive">Nieaktywny</MenuItem>
+                    <InputLabel>Status *</InputLabel>
+                    <Select {...field} label="Status *">
+                      <MenuItem value="ACTIVE">Aktywny</MenuItem>
+                      <MenuItem value="INACTIVE">Nieaktywny</MenuItem>
                     </Select>
                     {errors.status && (
                       <FormHelperText>{errors.status.message}</FormHelperText>
@@ -216,7 +219,7 @@ const HelicopterForm: React.FC = () => {
                 )}
               />
 
-              {statusValue === 'active' && (
+              {statusValue === 'ACTIVE' && (
                 <Controller
                   name="inspectionExpiryDate"
                   control={control}
@@ -236,16 +239,16 @@ const HelicopterForm: React.FC = () => {
               )}
 
               <Controller
-                name="rangeWithoutLanding"
+                name="rangeKm"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value))}
-                    label="Zasięg bez lądowania (km)"
+                    label="Zasięg bez lądowania (km) *"
                     type="number"
-                    error={!!errors.rangeWithoutLanding}
-                    helperText={errors.rangeWithoutLanding?.message}
+                    error={!!errors.rangeKm}
+                    helperText={errors.rangeKm?.message}
                     fullWidth
                     disabled={readOnly}
                   />
@@ -254,7 +257,7 @@ const HelicopterForm: React.FC = () => {
 
               {!readOnly && (
                 <Box display="flex" gap={2}>
-                  <Button type="submit" variant="contained" disabled={saveMutation.isPending}>
+                  <Button type="submit" variant="contained" disabled={saveMutation.isPending || !isValid}>
                     Zapisz
                   </Button>
                   <Button variant="outlined" onClick={() => navigate('/helicopters')}>
@@ -281,12 +284,12 @@ const HelicopterForm: React.FC = () => {
             <CardMedia
               component="img"
               image={helicopter.imageUrl}
-              alt={`${helicopter.type} — ${helicopter.registrationNumber}`}
+              alt={`${helicopter.helicopterType} — ${helicopter.registrationNumber}`}
               sx={{ height: 260, objectFit: 'cover' }}
             />
             <Box sx={{ px: 2, py: 1.5, bgcolor: 'grey.50' }}>
               <Typography variant="subtitle2">
-                {helicopter.type}
+                {helicopter.helicopterType}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {helicopter.registrationNumber}
@@ -296,7 +299,8 @@ const HelicopterForm: React.FC = () => {
           </Card>
         )}
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 };
 

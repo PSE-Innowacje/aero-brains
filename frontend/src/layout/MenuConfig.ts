@@ -1,7 +1,10 @@
+import type { UserRole } from '../api/types';
+
 export interface MenuItem {
   label: string;
   path: string;
   menuKey: string;
+  roles?: UserRole[]; // if set, only these roles see this item
 }
 
 export interface MenuGroup {
@@ -18,7 +21,7 @@ export const menuConfig: MenuGroup[] = [
       { label: 'Helikoptery', path: '/helicopters', menuKey: 'administration' },
       { label: 'Członkowie załogi', path: '/crew', menuKey: 'administration' },
       { label: 'Lądowiska planowe', path: '/landing-sites', menuKey: 'administration' },
-      { label: 'Użytkownicy', path: '/users', menuKey: 'administration' },
+      { label: 'Użytkownicy', path: '/users', menuKey: 'administration', roles: ['ADMINISTRATOR'] },
     ],
   },
   {

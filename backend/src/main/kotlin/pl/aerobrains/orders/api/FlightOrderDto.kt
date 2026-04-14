@@ -1,5 +1,6 @@
 package pl.aerobrains.orders.api
 
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import pl.aerobrains.orders.domain.OrderStatus
@@ -55,8 +56,29 @@ data class UpdateFlightOrderRequest(
     val estimatedRouteLengthKm: Int,
 
     val actualStartTime: LocalDateTime? = null,
-    val actualEndTime: LocalDateTime? = null
+    val actualEndTime: LocalDateTime? = null,
+    val actualRouteLengthKm: Int? = null
 )
+
+data class SettleFlightOrderRequest(
+    @field:NotNull
+    val actualStartTime: LocalDateTime,
+
+    @field:NotNull
+    val actualEndTime: LocalDateTime,
+
+    @field:NotNull
+    @field:Min(1)
+    val actualRouteLengthKm: Int,
+
+    val operationStatuses: Map<Long, OperationSettlementStatus>? = null
+)
+
+enum class OperationSettlementStatus {
+    COMPLETED,
+    PARTIALLY_COMPLETED,
+    NOT_COMPLETED
+}
 
 data class FlightOrderResponse(
     val id: Long,
@@ -73,6 +95,7 @@ data class FlightOrderResponse(
     val estimatedRouteLengthKm: Int,
     val actualStartTime: LocalDateTime?,
     val actualEndTime: LocalDateTime?,
+    val actualRouteLengthKm: Int?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )

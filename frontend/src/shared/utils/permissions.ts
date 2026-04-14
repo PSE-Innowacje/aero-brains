@@ -1,6 +1,6 @@
 import type { UserRole } from '../../api/types';
 
-type AccessLevel = 'full' | 'readonly' | 'none';
+type AccessLevel = 'full' | 'edit' | 'readonly' | 'none';
 
 interface MenuPermission {
   roles: UserRole[];
@@ -9,38 +9,48 @@ interface MenuPermission {
 
 export const menuPermissions: Record<string, MenuPermission> = {
   administration: {
-    roles: ['admin', 'supervisor', 'pilot'],
+    roles: ['ADMINISTRATOR', 'SUPERVISOR', 'PILOT'],
     access: {
-      admin: 'full',
-      planner: 'none',
-      supervisor: 'readonly',
-      pilot: 'readonly',
+      ADMINISTRATOR: 'full',
+      PLANNER: 'none',
+      SUPERVISOR: 'readonly',
+      PILOT: 'readonly',
     },
   },
   operations: {
-    roles: ['admin', 'planner', 'supervisor', 'pilot'],
+    roles: ['ADMINISTRATOR', 'PLANNER', 'SUPERVISOR', 'PILOT'],
     access: {
-      admin: 'readonly',
-      planner: 'full',
-      supervisor: 'full',
-      pilot: 'readonly',
+      ADMINISTRATOR: 'readonly',
+      PLANNER: 'full',
+      SUPERVISOR: 'full',
+      PILOT: 'readonly',
     },
   },
   flightOrders: {
-    roles: ['admin', 'supervisor', 'pilot'],
+    roles: ['ADMINISTRATOR', 'SUPERVISOR', 'PILOT'],
     access: {
-      admin: 'readonly',
-      planner: 'none',
-      supervisor: 'full',
-      pilot: 'full',
+      ADMINISTRATOR: 'readonly',
+      PLANNER: 'none',
+      SUPERVISOR: 'edit',
+      PILOT: 'full',
     },
   },
 };
 
+/**
+ * Check if a role can create new records in a menu section (full access only).
+ */
+export const canCreate = (role: UserRole, menuKey: string): boolean => {
+  const perm = menuPermissions[menuKey];
+  if (!perm) return false;
+  const normalized = role.toUpperCase() as UserRole;
+  return perm.access[normalized] === 'full';
+};
+
 /** Status codes in which a given role can edit an operation */
-export const operationEditableStatuses: Record<string, number[]> = {
-  planner: [1, 2, 3, 4, 5],
-  supervisor: [1, 2, 3, 4, 5, 6, 7],
+export const operationEditableStatuses: Record<string, string[]> = {
+  PLANNER: ['INTRODUCED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED'],
+  SUPERVISOR: ['INTRODUCED', 'REJECTED', 'CONFIRMED', 'SCHEDULED', 'PARTIALLY_COMPLETED', 'COMPLETED', 'CANCELLED'],
 };
 
 /** Fields that a planner cannot modify on an operation */
@@ -48,7 +58,7 @@ export const plannerBlockedFields: string[] = [
   'plannedDateFrom',
   'plannedDateTo',
   'status',
-  'postRealizationNotes',
+  'postCompletionNotes',
 ];
 
 /**
@@ -57,7 +67,8 @@ export const plannerBlockedFields: string[] = [
 export const canAccessMenu = (role: UserRole, menuKey: string): boolean => {
   const perm = menuPermissions[menuKey];
   if (!perm) return false;
-  return perm.access[role] !== 'none';
+  const normalized = role.toUpperCase() as UserRole;
+  return perm.access[normalized] !== 'none';
 };
 
 /**
@@ -66,14 +77,16 @@ export const canAccessMenu = (role: UserRole, menuKey: string): boolean => {
 export const canEdit = (role: UserRole, menuKey: string): boolean => {
   const perm = menuPermissions[menuKey];
   if (!perm) return false;
-  return perm.access[role] === 'full';
+  const normalized = role.toUpperCase() as UserRole;
+  return perm.access[normalized] === 'full' || perm.access[normalized] === 'edit';
 };
 
 /**
  * Check if a role can edit an operation given the current status code.
  */
-export const canEditOperation = (role: UserRole, statusCode: number): boolean => {
-  const allowed = operationEditableStatuses[role];
+export const canEditOperation = (role: UserRole, statusCode: string): boolean => {
+  const normalized = role.toUpperCase();
+  const allowed = operationEditableStatuses[normalized];
   if (!allowed) return false;
   return allowed.includes(statusCode);
 };

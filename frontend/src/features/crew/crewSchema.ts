@@ -18,11 +18,11 @@ export const crewSchema = z
       .max(100, 'Maksymalnie 100 znaków')
       .regex(emailRegex, 'Nieprawidłowy format adresu email'),
     weight: z
-      .number({ error: 'Wymagana liczba całkowita' })
-      .int('Musi być liczbą całkowitą')
-      .min(30, 'Minimum 30 kg')
-      .max(200, 'Maksimum 200 kg'),
-    role: z.enum(['pilot', 'observer']),
+      .number({ error: 'Wymagana liczba od 30 do 200' })
+      .int('Wymagana liczba od 30 do 200')
+      .min(30, 'Wymagana liczba od 30 do 200')
+      .max(200, 'Wymagana liczba od 30 do 200'),
+    role: z.string().min(1, 'Rola jest wymagana'),
     pilotLicenseNumber: z
       .string()
       .max(30, 'Maksymalnie 30 znaków')
@@ -33,25 +33,25 @@ export const crewSchema = z
   })
   .refine(
     (data) => {
-      if (data.role === 'pilot') {
+      if (data.role === 'PILOT') {
         return !!data.pilotLicenseNumber;
       }
       return true;
     },
     {
-      message: 'Numer licencji pilota jest wymagany dla pilotów',
+      message: 'Nr licencji wymagany dla pilota',
       path: ['pilotLicenseNumber'],
     },
   )
   .refine(
     (data) => {
-      if (data.role === 'pilot') {
+      if (data.role === 'PILOT') {
         return !!data.licenseExpiryDate;
       }
       return true;
     },
     {
-      message: 'Data ważności licencji jest wymagana dla pilotów',
+      message: 'Data licencji wymagana dla pilota',
       path: ['licenseExpiryDate'],
     },
   );

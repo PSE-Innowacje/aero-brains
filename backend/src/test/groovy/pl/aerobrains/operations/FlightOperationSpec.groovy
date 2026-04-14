@@ -187,6 +187,28 @@ class FlightOperationSpec extends BaseIntegrationSpec {
         result.andExpect(status().isCreated())
     }
 
+    def "should reject OTHER without description even with dates and additionalInfo"() {
+        given:
+        def token = plannerToken()
+        def request = [
+                orderProjectNumber: "dsadas",
+                shortDescription  : "dsadsa",
+                activities        : [[activityType: "OTHER"]],
+                proposedDateFrom  : "2026-04-08",
+                proposedDateTo    : "2026-04-01",
+                additionalInfo    : "dsad"
+        ]
+
+        when:
+        def result = mockMvc.perform(
+                post("/api/flight-operations").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        )
+
+        then: "should return 400, never 500/NPE"
+        result.andExpect(status().isBadRequest())
+    }
+
     // ==================== US-B: Planner reads operations ====================
 
     def "planner should list operations"() {
@@ -201,7 +223,7 @@ class FlightOperationSpec extends BaseIntegrationSpec {
 
         then:
         result.andExpect(status().isOk())
-              .andExpect(jsonPath('$').isArray())
+              .andExpect(jsonPath('$.content').isArray())
     }
 
     def "planner should read single operation details"() {
@@ -413,6 +435,205 @@ class FlightOperationSpec extends BaseIntegrationSpec {
         then:
         body.changeLog.size() > 0
         body.changeLog.any { it.fieldName == "status" && it.newValue == "REJECTED" }
+    }
+
+    // ==================== Coordinates / Map route ====================
+
+    def "should create operation with coordinates and generate KML + GeoJSON"() {
+        given:
+        def token = plannerToken()
+        def request = [
+                orderProjectNumber: "wwwww",
+                shortDescription  : "weqqwe",
+                activities        : [[activityType: "SCAN_3D"]],
+                proposedDateFrom  : "2026-04-08",
+                proposedDateTo    : "2026-04-15",
+                additionalInfo    : "dsadsada",
+                coordinates       : [
+                        [latitude: 52.18572083717691, longitude: 21.049804687500004],
+                        [latitude: 52.04203868248163, longitude: 20.6927490234375],
+                        [latitude: 51.7875948153132,  longitude: 20.895996093750004],
+                        [latitude: 51.631018028529574, longitude: 20.258789062500004]
+                ]
+        ]
+
+        when:
+        def result = mockMvc.perform(
+                post("/api/flight-operations").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        )
+
+        then: "operation created with calculated route length and geojson"
+        result.andExpect(status().isCreated())
+              .andExpect(jsonPath('$.orderProjectNumber').value("wwwww"))
+              .andExpect(jsonPath('$.status').value("INTRODUCED"))
+              .andExpect(jsonPath('$.routeLengthKm').isNumber())
+              .andExpect(jsonPath('$.geojsonContent').isNotEmpty())
+
+        and: "route length is reasonable (> 0 km)"
+        def response = parseResponse(result.andReturn())
+        response.routeLengthKm > 0
+    }
+
+    def "should persist KML content from coordinates and allow download"() {
+        given:
+        def token = plannerToken()
+        def request = [
+                orderProjectNumber: "KML-DL-" + System.nanoTime(),
+                shortDescription  : "KML download test",
+                activities        : [[activityType: "VISUAL_INSPECTION"]],
+                coordinates       : [
+                        [latitude: 52.18572083717691, longitude: 21.049804687500004],
+                        [latitude: 52.04203868248163, longitude: 20.6927490234375]
+                ]
+        ]
+
+        def op = parseResponse(mockMvc.perform(
+                post("/api/flight-operations").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        ).andReturn())
+
+        when: "download KML"
+        def kmlResult = mockMvc.perform(
+                get("/api/flight-operations/${op.id}/kml").header("Authorization", "Bearer $token")
+        )
+
+        then:
+        kmlResult.andExpect(status().isOk())
+        def kmlBody = kmlResult.andReturn().response.contentAsString
+        kmlBody.contains("<kml")
+        kmlBody.contains("21.049804687500004")
+        kmlBody.contains("52.18572083717691")
+    }
+
+    def "should persist GeoJSON content from coordinates and allow download"() {
+        given:
+        def token = plannerToken()
+        def request = [
+                orderProjectNumber: "GEO-DL-" + System.nanoTime(),
+                shortDescription  : "GeoJSON download test",
+                activities        : [[activityType: "PATROL"]],
+                coordinates       : [
+                        [latitude: 52.18572083717691, longitude: 21.049804687500004],
+                        [latitude: 51.631018028529574, longitude: 20.258789062500004]
+                ]
+        ]
+
+        def op = parseResponse(mockMvc.perform(
+                post("/api/flight-operations").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        ).andReturn())
+
+        when: "download GeoJSON"
+        def geojsonResult = mockMvc.perform(
+                get("/api/flight-operations/${op.id}/geojson").header("Authorization", "Bearer $token")
+        )
+
+        then:
+        geojsonResult.andExpect(status().isOk())
+        def geojsonBody = geojsonResult.andReturn().response.contentAsString
+        geojsonBody.contains("FeatureCollection")
+        geojsonBody.contains("LineString")
+    }
+
+    def "should create operation without coordinates (route length 0)"() {
+        given:
+        def token = plannerToken()
+        def request = [
+                orderProjectNumber: "NO-COORDS-" + System.nanoTime(),
+                shortDescription  : "No coordinates test",
+                activities        : [[activityType: "PHOTOS"]]
+        ]
+
+        when:
+        def result = mockMvc.perform(
+                post("/api/flight-operations").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        )
+
+        then:
+        result.andExpect(status().isCreated())
+              .andExpect(jsonPath('$.routeLengthKm').value(0))
+    }
+
+    def "should update operation coordinates"() {
+        given:
+        def token = plannerToken()
+        def op = createOperation(token, [
+                coordinates: [
+                        [latitude: 52.0, longitude: 21.0],
+                        [latitude: 51.0, longitude: 20.0]
+                ]
+        ])
+
+        def updateRequest = [
+                orderProjectNumber: op.orderProjectNumber,
+                shortDescription  : op.shortDescription,
+                activities        : [[activityType: "VISUAL_INSPECTION"]],
+                coordinates       : [
+                        [latitude: 52.18572083717691, longitude: 21.049804687500004],
+                        [latitude: 52.04203868248163, longitude: 20.6927490234375],
+                        [latitude: 51.7875948153132,  longitude: 20.895996093750004],
+                        [latitude: 51.631018028529574, longitude: 20.258789062500004]
+                ]
+        ]
+
+        when:
+        def result = mockMvc.perform(
+                put("/api/flight-operations/${op.id}").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(updateRequest))
+        )
+
+        then: "updated with new route"
+        result.andExpect(status().isOk())
+              .andExpect(jsonPath('$.routeLengthKm').isNumber())
+              .andExpect(jsonPath('$.geojsonContent').isNotEmpty())
+
+        and: "route recalculated"
+        def updated = parseResponse(result.andReturn())
+        updated.routeLengthKm > 0
+    }
+
+    def "should return no content for KML when operation has no coordinates"() {
+        given:
+        def token = plannerToken()
+        def op = createOperation(token)
+
+        when:
+        def result = mockMvc.perform(
+                get("/api/flight-operations/${op.id}/kml").header("Authorization", "Bearer $token")
+        )
+
+        then:
+        result.andExpect(status().isNoContent())
+    }
+
+    def "should create operation with single coordinate (Point geometry)"() {
+        given:
+        def token = plannerToken()
+        def request = [
+                orderProjectNumber: "SINGLE-PT-" + System.nanoTime(),
+                shortDescription  : "Single point test",
+                activities        : [[activityType: "FAULT_LOCATION"]],
+                coordinates       : [
+                        [latitude: 52.18572083717691, longitude: 21.049804687500004]
+                ]
+        ]
+
+        when:
+        def result = mockMvc.perform(
+                post("/api/flight-operations").header("Authorization", "Bearer $token")
+                        .contentType(MediaType.APPLICATION_JSON).content(toJson(request))
+        )
+
+        then:
+        result.andExpect(status().isCreated())
+              .andExpect(jsonPath('$.routeLengthKm').value(0))
+              .andExpect(jsonPath('$.geojsonContent').isNotEmpty())
+
+        and: "GeoJSON uses Point geometry"
+        def response = parseResponse(result.andReturn())
+        response.geojsonContent.contains("Point")
     }
 
     def "planner should add comment to operation"() {

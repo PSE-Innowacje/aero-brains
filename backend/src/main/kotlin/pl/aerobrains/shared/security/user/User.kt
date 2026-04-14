@@ -30,7 +30,7 @@ class User(
     var email: String,
 
     @Column(nullable = false, length = 255)
-    var password: String,
+    var password: String = "",
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)

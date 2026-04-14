@@ -1,6 +1,9 @@
 package pl.aerobrains.orders.api
 
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -22,8 +25,10 @@ class FlightOrderController(
 
     @GetMapping
     @PreAuthorize("hasAnyRole('PILOT', 'SUPERVISOR', 'ADMINISTRATOR')")
-    fun findAll(): ResponseEntity<List<FlightOrderListItem>> {
-        return ResponseEntity.ok(service.findAll())
+    fun findAll(
+        @PageableDefault(size = 20) pageable: Pageable
+    ): ResponseEntity<Page<FlightOrderListItem>> {
+        return ResponseEntity.ok(service.findAll(pageable))
     }
 
     @GetMapping("/{id}")
@@ -53,8 +58,8 @@ class FlightOrderController(
 
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasRole('PILOT')")
-    fun submit(@PathVariable id: Long): ResponseEntity<Void> {
-        service.submit(id)
+    fun submit(@PathVariable id: Long, authentication: Authentication): ResponseEntity<Void> {
+        service.submit(id, authentication.name)
         return ResponseEntity.noContent().build()
     }
 
@@ -74,15 +79,23 @@ class FlightOrderController(
 
     @PostMapping("/{id}/settle-partial")
     @PreAuthorize("hasRole('PILOT')")
-    fun settlePartial(@PathVariable id: Long, authentication: Authentication): ResponseEntity<Void> {
-        service.settlePartial(id, authentication.name)
+    fun settlePartial(
+        @PathVariable id: Long,
+        @Valid @RequestBody request: SettleFlightOrderRequest,
+        authentication: Authentication
+    ): ResponseEntity<Void> {
+        service.settlePartial(id, request, authentication.name)
         return ResponseEntity.noContent().build()
     }
 
     @PostMapping("/{id}/settle-complete")
     @PreAuthorize("hasRole('PILOT')")
-    fun settleComplete(@PathVariable id: Long, authentication: Authentication): ResponseEntity<Void> {
-        service.settleComplete(id, authentication.name)
+    fun settleComplete(
+        @PathVariable id: Long,
+        @Valid @RequestBody request: SettleFlightOrderRequest,
+        authentication: Authentication
+    ): ResponseEntity<Void> {
+        service.settleComplete(id, request, authentication.name)
         return ResponseEntity.noContent().build()
     }
 

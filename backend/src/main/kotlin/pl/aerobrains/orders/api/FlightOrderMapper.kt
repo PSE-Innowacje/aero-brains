@@ -15,6 +15,7 @@ interface FlightOrderMapper {
     @Mapping(target = "crewWeight", constant = "0")
     @Mapping(target = "actualStartTime", ignore = true)
     @Mapping(target = "actualEndTime", ignore = true)
+    @Mapping(target = "actualRouteLengthKm", ignore = true)
     fun toEntity(request: CreateFlightOrderRequest): FlightOrder
 
     fun toResponse(order: FlightOrder): FlightOrderResponse
